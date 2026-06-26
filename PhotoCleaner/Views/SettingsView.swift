@@ -72,13 +72,13 @@ struct SettingsView: View {
                             }
                             divider
                             linkRow(label: lm.t("GitHub 仓库"), symbol: "chevron.left.forwardslash.chevron.right",
-                                     url: "https://github.com/ZanwingMak/PhotoCleaner")
+                                     url: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource")
                             divider
                             linkRow(label: lm.t("反馈问题"), symbol: "exclamationmark.bubble",
-                                     url: "https://github.com/ZanwingMak/PhotoCleaner/issues")
+                                     url: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource/issues")
                             divider
                             linkRow(label: lm.t("更新日志"), symbol: "list.bullet.rectangle",
-                                     url: "https://github.com/ZanwingMak/PhotoCleaner/blob/main/CHANGELOG.md")
+                                     url: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource/blob/main/CHANGELOG.md")
                         }
 
                         footerNote
