@@ -246,7 +246,7 @@ struct SettingsView: View {
             }
             .shadow(color: AppPalette.brand.opacity(0.5), radius: 16, x: 0, y: 8)
 
-            Text("PhotoCleaner")
+            Text("RollKeep")
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(AppPalette.textPrimary(for: theme))
             Text(lm.t("整理你的照片库，腾出存储空间"))
@@ -459,7 +459,7 @@ struct SettingsView: View {
             Image(systemName: "lock.fill")
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(AppPalette.textTertiary(for: theme))
-            Text(lm.t("PhotoCleaner 在本地处理你的所有照片\n绝不上传任何数据"))
+            Text(lm.t("RollKeep 在本地处理你的所有照片\n绝不上传任何数据"))
                 .font(.system(size: 11))
                 .foregroundStyle(AppPalette.textTertiary(for: theme))
                 .multilineTextAlignment(.center)
