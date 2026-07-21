@@ -83,7 +83,7 @@ struct FloatingTabBar: View {
     private func tabButton(_ item: TabBarItem) -> some View {
         let isSelected = (item == selected)
         Button {
-            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+            AppHaptics.impact(.soft)
             onTap(item)
         } label: {
             VStack(spacing: 3) {

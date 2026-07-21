@@ -21,6 +21,8 @@ struct CategoryListView: View {
     @EnvironmentObject private var library: PhotoLibraryService
     @EnvironmentObject private var lm: LanguageManager
     @EnvironmentObject private var themeManager: ThemeManager
+    @EnvironmentObject private var store: StoreService
+    @EnvironmentObject private var usage: UsageTracker
     @State private var topTab: TopTab = .unsorted
     @State private var tabBarItem: TabBarItem = .organize
     @State private var toast: ToastInfo?
@@ -29,6 +31,9 @@ struct CategoryListView: View {
     @State private var showSuggestionList = false
     @State private var showsAllMonthBuckets = false
     @State private var scrollToTopRequest = 0
+    @State private var showPaywall = false
+    @State private var showInsights = false
+    @State private var paywallReason: PaywallReason = .upgrade
 
     /// 刷新按钮持续旋转角度
     @State private var refreshSpinAngle: Double = 0
@@ -85,6 +90,12 @@ struct CategoryListView: View {
             .sheet(isPresented: $showSuggestionList) {
                 SmartSuggestionListSheet()
             }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView(reason: paywallReason)
+            }
+            .sheet(isPresented: $showInsights) {
+                CleanupInsightsView()
+            }
             .task {
                 if library.categoryCounts.isEmpty {
                     await library.refreshCategoryCounts()
@@ -127,6 +138,7 @@ struct CategoryListView: View {
                         .frame(height: 0)
                         .id(HomeScrollAnchor.top)
                     heroStorageCard
+                    cleanupProgressCard
                     smartSuggestionRow
                     quickPickRow
                     bentoCategoryGrid
@@ -177,7 +189,7 @@ struct CategoryListView: View {
     /// 刷新完成弹 toast
     private func showRefreshToast() {
         let count = library.categoryCounts[PhotoCategory.allPhotos.id] ?? 0
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        AppHaptics.notify(.success)
         withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
             toast = ToastInfo(
                 symbol: "checkmark.circle.fill",
@@ -194,6 +206,7 @@ struct CategoryListView: View {
             .smartAlbum(.smartAlbumVideos, title: "视频", symbol: "video.fill", tint: .green),
             .smartAlbum(.smartAlbumLivePhotos, title: "实况照片", symbol: "livephoto", tint: .mint),
             .smartAlbum(.smartAlbumRecentlyAdded, title: "最近添加", symbol: "clock.fill", tint: .yellow),
+            .inferred(.burst), .inferred(.largeVideo),
             .inferred(.selfie), .inferred(.camera), .inferred(.social),
             .inferred(.largeFile), .inferred(.landscape), .inferred(.portrait)
         ]
@@ -214,7 +227,7 @@ struct CategoryListView: View {
             Spacer()
             // 刷新按钮：点击立即转一圈，isLoading 期间继续累加，完成弹 toast
             Button {
-                UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                AppHaptics.impact(.soft)
                 withAnimation(.easeOut(duration: 0.6)) {
                     refreshSpinAngle += 360
                 }
@@ -244,7 +257,7 @@ struct CategoryListView: View {
             }
             // 设置入口
             Button {
-                UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                AppHaptics.impact(.soft)
                 showSettings = true
             } label: {
                 Image(systemName: "slider.horizontal.3")
@@ -279,7 +292,7 @@ struct CategoryListView: View {
         HStack(spacing: 24) {
             ForEach(TopTab.allCases, id: \.rawValue) { tab in
                 Button {
-                    UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                    AppHaptics.impact(.soft)
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                         topTab = tab
                         tabBarItem = (tab == .unsorted) ? .organize : .albums
@@ -366,6 +379,76 @@ struct CategoryListView: View {
         .frame(minHeight: 140)
     }
 
+    // MARK: - 整理进度卡
+
+    private var cleanupProgressCard: some View {
+        Button {
+            AppHaptics.impact(.soft)
+            if store.isPro {
+                showInsights = true
+            } else {
+                paywallReason = .insightsLocked
+                showPaywall = true
+            }
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(AppPalette.brand.opacity(0.14))
+                        .frame(width: 52, height: 52)
+                    Image(systemName: "chart.bar.fill")
+                        .font(.system(size: 21, weight: .bold))
+                        .foregroundStyle(AppPalette.brand)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text(lm.t("整理进度"))
+                            .font(.headline)
+                            .foregroundStyle(AppPalette.textPrimary(for: themeManager.current))
+                        if !store.isPro {
+                            Text(lm.t("会员"))
+                                .font(.caption2.weight(.heavy))
+                                .foregroundStyle(AppPalette.brand)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Capsule().fill(AppPalette.brand.opacity(0.14)))
+                        }
+                    }
+                    Text(String(format: lm.t("连续 %d 天 · 已审核 %d 张"),
+                                usage.currentStreak,
+                                usage.totalReviewedCount))
+                        .font(.caption)
+                        .foregroundStyle(AppPalette.textSecondary(for: themeManager.current))
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(ByteCountFormatter.string(fromByteCount: usage.totalFreedBytes,
+                                                   countStyle: .file))
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(AppPalette.textPrimary(for: themeManager.current))
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(AppPalette.brand)
+                }
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(AppPalette.bgCard(for: themeManager.current))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .strokeBorder(.primary.opacity(0.05), lineWidth: 1)
+                    )
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(store.isPro ? lm.t("查看最近整理趋势") : lm.t("升级会员查看完整趋势"))
+    }
+
     /// 估算可释放空间：按建议清理照片平均 1.5MB/张估算
     private var estimatedReleaseSize: String {
         let bytes = Double(suggestedCleanupCount) * 1_500_000.0
@@ -419,7 +502,7 @@ struct CategoryListView: View {
                 Spacer()
                 // 「更多」按钮：点击弹出完整列表
                 Button {
-                    UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                    AppHaptics.impact(.soft)
                     showSuggestionList = true
                 } label: {
                     HStack(spacing: 4) {
@@ -554,15 +637,20 @@ struct CategoryListView: View {
 
                 if hasMoreMonthBuckets {
                     Button {
-                        UIImpactFeedbackGenerator(style: .soft).impactOccurred()
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                            showAllMonthBuckets()
+                        AppHaptics.impact(.soft)
+                        if store.isPro {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                showAllMonthBuckets()
+                            }
+                        } else {
+                            paywallReason = .fullHistoryLocked
+                            showPaywall = true
                         }
                     } label: {
                         HStack(spacing: 6) {
-                            Text(lm.t("显示全部时间线"))
+                            Text(lm.t(store.isPro ? "显示全部时间线" : "会员解锁完整时间线"))
                                 .font(.system(size: 13, weight: .semibold))
-                            Image(systemName: "chevron.down")
+                            Image(systemName: store.isPro ? "chevron.down" : "lock.fill")
                                 .font(.system(size: 11, weight: .bold))
                         }
                         .foregroundStyle(AppPalette.brand)
@@ -578,10 +666,11 @@ struct CategoryListView: View {
 
     /// 首页当前展示的月份分桶，默认只保留最近一年的月份
     private var displayedMonthBuckets: [MonthBucket] {
-        if showsAllMonthBuckets {
+        if showsAllMonthBuckets && store.isPro {
             return library.monthBuckets
         }
-        return library.monthBuckets.filter(isInRecentYear)
+        let monthLimit = store.isPro ? 12 : 6
+        return library.monthBuckets.filter { isInRecentMonths($0, count: monthLimit) }
     }
 
     /// 是否还有未展示的月份分桶
@@ -594,15 +683,15 @@ struct CategoryListView: View {
         showsAllMonthBuckets = true
     }
 
-    /// 判断月份分桶是否位于当前月份起算的最近 12 个月内
-    private func isInRecentYear(_ bucket: MonthBucket) -> Bool {
+    /// 判断月份分桶是否位于当前月份起算的指定月数内
+    private func isInRecentMonths(_ bucket: MonthBucket, count: Int) -> Bool {
         let calendar = Calendar.current
         let now = Date()
         let currentYear = calendar.component(.year, from: now)
         let currentMonth = calendar.component(.month, from: now)
         let currentIndex = currentYear * 12 + currentMonth
         let bucketIndex = bucket.year * 12 + bucket.month
-        return bucketIndex >= currentIndex - 11 && bucketIndex <= currentIndex
+        return bucketIndex >= currentIndex - max(0, count - 1) && bucketIndex <= currentIndex
     }
 
     /// 右下角悬浮返回顶部按钮
@@ -612,7 +701,7 @@ struct CategoryListView: View {
             HStack {
                 Spacer()
                 Button {
-                    UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                    AppHaptics.impact(.soft)
                     scrollToTopRequest += 1
                 } label: {
                     Image(systemName: "arrow.up")
@@ -962,6 +1051,10 @@ private struct SmartSuggestionConfig: Identifiable {
 
 /// 智能建议数据源
 private let smartSuggestionConfigs: [SmartSuggestionConfig] = [
+    .init(category: .inferred(.largeVideo), label: "大视频", symbol: "video.badge.ellipsis",
+          gradient: [Color(red: 0.92, green: 0.34, blue: 0.32), Color(red: 0.56, green: 0.16, blue: 0.20)]),
+    .init(category: .inferred(.burst), label: "连拍照片", symbol: "square.stack.3d.up.fill",
+          gradient: [Color(red: 0.95, green: 0.62, blue: 0.24), Color(red: 0.70, green: 0.32, blue: 0.18)]),
     .init(category: .inferred(.oldScreenshot), label: "陈年截图", symbol: "calendar.badge.exclamationmark",
           gradient: [Color(red: 0.25, green: 0.45, blue: 0.85), Color(red: 0.15, green: 0.30, blue: 0.55)]),
     .init(category: .inferred(.largeFile), label: "占空间大户", symbol: "externaldrive.badge.exclamationmark",

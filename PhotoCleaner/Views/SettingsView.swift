@@ -1,26 +1,35 @@
 //
 //  SettingsView.swift
-//  设置面板：偏好开关 + 主题切换 + 关于
+//  设置面板：会员状态 + 偏好开关 + 主题切换 + 关于
 //
 
 import SwiftUI
 import Photos
+import StoreKit
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.systemColorScheme) private var systemScheme  // App root 注入：系统真实模式，不被任何 override 污染
+    @Environment(\.requestReview) private var requestReview
     @EnvironmentObject private var library: PhotoLibraryService
     @EnvironmentObject private var themeManager: ThemeManager
     @EnvironmentObject private var lm: LanguageManager
+    @EnvironmentObject private var store: StoreService
+    @EnvironmentObject private var usage: UsageTracker
 
     @AppStorage("haptics_enabled")        private var hapticsEnabled = true
     @AppStorage("thumbnail_hq")           private var hqThumbnails = true
     @AppStorage("confirm_before_delete")  private var confirmBeforeDelete = true
 
-    @StateObject private var updateChecker = UpdateChecker()
     @State private var isScanning = false
     @State private var toast: ToastInfo?
-    @State private var showSponsorList = false
+    @State private var showPaywall = false
+    @State private var paywallReason: PaywallReason = .upgrade
+    @State private var showRedeemSheet = false
+
+    /// 上架前分享公开项目页，上架后可替换为 App Store 商品页
+    private let appStoreURL = URL(string: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource")
+        ?? URL(fileURLWithPath: "/")
 
     var body: some View {
         NavigationStack {
@@ -30,6 +39,8 @@ struct SettingsView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 22) {
                         brandHeader
+
+                        membershipSection
 
                         section(lm.t("外观")) {
                             themePickerRow
@@ -53,32 +64,44 @@ struct SettingsView: View {
                         section(lm.t("数据")) {
                             infoRow(label: lm.t("已扫描照片"), symbol: "photo.on.rectangle",
                                      value: "\(library.categoryCounts[PhotoCategory.allPhotos.id] ?? 0)")
+                            if !store.isPro {
+                                divider
+                                infoRow(label: lm.t("今日剩余可整理"), symbol: "gauge.with.dots.needle.50percent",
+                                         value: "\(usage.remainingToday(isPro: false))")
+                            }
                             divider
                             scanRow
                         }
 
-                        section(lm.t("关于")) {
-                            // 有新版时插一行醒目提示，点击跳 release 页
-                            if updateChecker.hasUpdate,
-                               let v = updateChecker.latestVersion,
-                               let url = updateChecker.releaseURL {
-                                updateAvailableRow(version: v, url: url)
-                                divider
+                        section(lm.t("支持我们")) {
+                            actionRow(label: lm.t("给个好评"), symbol: "star.fill", tint: .yellow) {
+                                requestReview()
                             }
+                            divider
+                            shareRow
+                        }
+
+                        section(lm.t("账户")) {
+                            actionRow(label: lm.t("已经购买?"), symbol: "arrow.clockwise.circle.fill", tint: AppPalette.brand) {
+                                Task { await performRestore() }
+                            }
+                            divider
+                            actionRow(label: lm.t("使用兑换码"), symbol: "gift.fill", tint: .pink) {
+                                showRedeemSheet = true
+                            }
+                            divider
+                            linkRow(label: lm.t("管理订阅"), symbol: "creditcard.fill",
+                                     url: "https://apps.apple.com/account/subscriptions")
+                        }
+
+                        section(lm.t("关于")) {
                             infoRow(label: lm.t("版本"), symbol: "info.circle", value: appVersion)
                             divider
-                            actionRow(label: lm.t("赞助支持"), symbol: "heart.circle.fill", tint: .pink) {
-                                showSponsorList = true
-                            }
+                            linkRow(label: lm.t("隐私政策"), symbol: "hand.raised.fill",
+                                     url: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource#privacy")
                             divider
-                            linkRow(label: lm.t("GitHub 仓库"), symbol: "chevron.left.forwardslash.chevron.right",
-                                     url: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource")
-                            divider
-                            linkRow(label: lm.t("反馈问题"), symbol: "exclamationmark.bubble",
-                                     url: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource/issues")
-                            divider
-                            linkRow(label: lm.t("更新日志"), symbol: "list.bullet.rectangle",
-                                     url: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource/blob/main/CHANGELOG.md")
+                            linkRow(label: lm.t("使用条款"), symbol: "doc.text.fill",
+                                     url: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
                         }
 
                         footerNote
@@ -89,12 +112,10 @@ struct SettingsView: View {
                 }
             }
             .toast($toast)
-            .sheet(isPresented: $showSponsorList) {
-                SponsorListSheet()
-                    .presentationDetents([.medium, .large])
-                    .presentationDragIndicator(.visible)
+            .sheet(isPresented: $showPaywall) {
+                PaywallView(reason: paywallReason)
             }
-            .task { await updateChecker.check() }
+            .offerCodeRedemption(isPresented: $showRedeemSheet) { _ in }
             .preferredColorScheme(preferredSchemeForSheet)
             .navigationTitle(lm.t("设置"))
             .navigationBarTitleDisplayMode(.inline)
@@ -109,6 +130,91 @@ struct SettingsView: View {
         }
         // 主题变化时让整个 NavigationStack 重建，绕过 sheet 内 traitCollection 缓存
         .id(themeManager.current.rawValue)
+    }
+
+    // MARK: - 会员卡片
+
+    private var membershipSection: some View {
+        Button {
+            AppHaptics.impact(.soft)
+            if !store.isPro {
+                paywallReason = .upgrade
+                showPaywall = true
+            }
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(AppPalette.brandGradient)
+                        .frame(width: 52, height: 52)
+                    Image(systemName: store.isPro ? "crown.fill" : "sparkles")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(store.isPro ? lm.t("RollKeep 会员") : lm.t("升级会员"))
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(AppPalette.textPrimary(for: themeManager.current))
+                    Text(store.isPro ? lm.t("已解锁全部功能") : lm.t("解锁无限整理与深度洞察"))
+                        .font(.system(size: 12))
+                        .foregroundStyle(AppPalette.textSecondary(for: themeManager.current))
+                }
+                Spacer()
+                if !store.isPro {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(AppPalette.textTertiary(for: themeManager.current))
+                }
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(AppPalette.bgCard(for: themeManager.current))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .strokeBorder(AppPalette.brand.opacity(store.isPro ? 0.5 : 0.18), lineWidth: 1.5)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(store.isPro)
+    }
+
+    /// 分享行：把 App Store 链接通过系统分享面板送出
+    private var shareRow: some View {
+        ShareLink(item: appStoreURL,
+                  subject: Text(lm.t("RollKeep")),
+                  message: Text(lm.t("用 RollKeep 整理你的照片库，腾出更多空间。"))) {
+            HStack(spacing: 14) {
+                iconBubble("square.and.arrow.up", tint: .blue)
+                Text(lm.t("分享给朋友"))
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(AppPalette.textPrimary(for: theme))
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(AppPalette.textTertiary(for: theme))
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// 恢复购买并反馈
+    private func performRestore() async {
+        let ok = await store.restore()
+        if ok {
+            AppHaptics.notify(.success)
+            toast = ToastInfo(symbol: "checkmark.circle.fill",
+                              text: lm.t("已恢复会员权益"),
+                              tint: AppPalette.success)
+        } else {
+            toast = ToastInfo(symbol: "info.circle.fill",
+                              text: lm.t("未找到可恢复的购买记录"),
+                              tint: AppPalette.textSecondary(for: theme))
+        }
     }
 
     // MARK: - 语言选择行
@@ -131,7 +237,7 @@ struct SettingsView: View {
                 HStack(spacing: 8) {
                     ForEach(AppLanguage.allCases) { lang in
                         Button {
-                            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                            AppHaptics.impact(.soft)
                             lm.set(lang)
                         } label: {
                             let isSelected = lm.current == lang
@@ -198,11 +304,11 @@ struct SettingsView: View {
 
     /// 执行重新扫描 + 反馈
     private func rescanWithFeedback() async {
-        UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+        AppHaptics.impact(.soft)
         isScanning = true
         await library.refreshCategoryCounts()
         isScanning = false
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        AppHaptics.notify(.success)
         withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
             let count = library.categoryCounts[PhotoCategory.allPhotos.id] ?? 0
             toast = ToastInfo(
@@ -257,7 +363,7 @@ struct SettingsView: View {
         .padding(.bottom, 8)
     }
 
-    // MARK: - 主题切换行（5 个色块横向）
+    // MARK: - 主题切换行（5 个色块横向，非 Pro 锁定）
 
     private var themePickerRow: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -275,8 +381,13 @@ struct SettingsView: View {
             HStack(spacing: 10) {
                 ForEach(AppTheme.allCases) { t in
                     Button {
-                        UIImpactFeedbackGenerator(style: .soft).impactOccurred()
-                        themeManager.set(t)
+                        AppHaptics.impact(.soft)
+                        if store.isPro || !t.isPremium {
+                            themeManager.set(t)
+                        } else {
+                            paywallReason = .themeLocked
+                            showPaywall = true
+                        }
                     } label: {
                         themeSwatch(t)
                     }
@@ -288,9 +399,10 @@ struct SettingsView: View {
         .padding(.vertical, 14)
     }
 
-    /// 单个主题色块
+    /// 单个主题色块；非 Pro 显示小锁
     private func themeSwatch(_ t: AppTheme) -> some View {
         let isSelected = themeManager.current == t
+        let locked = !store.isPro && t.isPremium
         return VStack(spacing: 6) {
             ZStack {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -307,6 +419,14 @@ struct SettingsView: View {
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(t == .light ? .black : .white)
                     .opacity(0.8)
+                if locked && !isSelected {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(4)
+                        .background(Circle().fill(.black.opacity(0.55)))
+                        .offset(x: 16, y: 16)
+                }
             }
             Text(lm.t(t.title))
                 .font(.system(size: 10, weight: isSelected ? .bold : .medium))
@@ -381,7 +501,7 @@ struct SettingsView: View {
 
     private func actionRow(label: String, symbol: String, tint: Color, action: @escaping () -> Void) -> some View {
         Button {
-            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+            AppHaptics.impact(.soft)
             action()
         } label: {
             HStack(spacing: 14) {
@@ -401,32 +521,8 @@ struct SettingsView: View {
         .buttonStyle(.plain)
     }
 
-    /// 「发现新版本」提示行：仅在 UpdateChecker.hasUpdate 时插入「关于」section 顶部
-    private func updateAvailableRow(version: String, url: URL) -> some View {
-        Link(destination: url) {
-            HStack(spacing: 14) {
-                iconBubble("arrow.up.circle.fill", tint: AppPalette.brand)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(String(format: lm.t("发现新版本 %@"), version))
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(AppPalette.brand)
-                    Text(lm.t("查看更新"))
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(AppPalette.textSecondary(for: theme))
-                }
-                Spacer()
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(AppPalette.brand)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .contentShape(Rectangle())
-        }
-    }
-
     private func linkRow(label: String, symbol: String, url: String) -> some View {
-        Link(destination: URL(string: url)!) {
+        Link(destination: URL(string: url) ?? URL(fileURLWithPath: "/")) {
             HStack(spacing: 14) {
                 iconBubble(symbol, tint: AppPalette.brand)
                 Text(label)
@@ -465,206 +561,5 @@ struct SettingsView: View {
                 .multilineTextAlignment(.center)
         }
         .padding(.vertical, 12)
-    }
-}
-
-// MARK: - 赞助方式
-
-/// 赞助方式配置：包含列表展示信息、二维码资源名和可选链接
-private struct SponsorMethod: Identifiable {
-    let id: String
-    let title: String
-    let subtitle: String
-    let symbol: String
-    let tint: Color
-    let qrAssetName: String
-    let urlString: String?
-
-    /// 可打开的赞助链接
-    var url: URL? {
-        guard let urlString else { return nil }
-        return URL(string: urlString)
-    }
-
-    static let all: [SponsorMethod] = [
-        SponsorMethod(id: "paypal",
-                      title: "PayPal",
-                      subtitle: "paypal.me/zanwing",
-                      symbol: "p.circle.fill",
-                      tint: .blue,
-                      qrAssetName: "SponsorPayPal",
-                      urlString: "https://paypal.me/zanwing"),
-        SponsorMethod(id: "bmc",
-                      title: "Buy me a coffee",
-                      subtitle: "buymeacoffee.com/zanwing",
-                      symbol: "cup.and.saucer.fill",
-                      tint: .yellow,
-                      qrAssetName: "SponsorBMC",
-                      urlString: "https://buymeacoffee.com/zanwing"),
-        SponsorMethod(id: "wise",
-                      title: "Wise",
-                      subtitle: "wise.com/pay/me/zhenyingm1",
-                      symbol: "globe.asia.australia.fill",
-                      tint: .green,
-                      qrAssetName: "SponsorWise",
-                      urlString: "https://wise.com/pay/me/zhenyingm1"),
-        SponsorMethod(id: "wechat",
-                      title: "微信赞赏码",
-                      subtitle: "扫码赞助",
-                      symbol: "qrcode",
-                      tint: .mint,
-                      qrAssetName: "SponsorWeChat",
-                      urlString: nil),
-        SponsorMethod(id: "alipay",
-                      title: "支付宝",
-                      subtitle: "扫码赞助",
-                      symbol: "qrcode.viewfinder",
-                      tint: .cyan,
-                      qrAssetName: "SponsorAlipay",
-                      urlString: nil)
-    ]
-}
-
-/// 赞助方式列表：点击某一项后弹出对应二维码
-private struct SponsorListSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var lm: LanguageManager
-    @EnvironmentObject private var themeManager: ThemeManager
-    @State private var selectedSponsor: SponsorMethod?
-
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                AppPalette.bgPrimary(for: themeManager.current).ignoresSafeArea()
-
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 12) {
-                        ForEach(SponsorMethod.all) { method in
-                            Button {
-                                UIImpactFeedbackGenerator(style: .soft).impactOccurred()
-                                selectedSponsor = method
-                            } label: {
-                                SponsorMethodRow(method: method)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 12)
-                    .padding(.bottom, 36)
-                }
-            }
-            .preferredColorScheme(themeManager.current.colorScheme)
-            .navigationTitle(lm.t("赞助支持"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(lm.t("关闭")) { dismiss() }
-                        .tint(AppPalette.brand)
-                }
-            }
-            .sheet(item: $selectedSponsor) { method in
-                SponsorQRCodeSheet(method: method)
-                    .presentationDetents([.large])
-                    .presentationDragIndicator(.visible)
-            }
-        }
-    }
-}
-
-/// 赞助方式列表行
-private struct SponsorMethodRow: View {
-    @EnvironmentObject private var lm: LanguageManager
-    @EnvironmentObject private var themeManager: ThemeManager
-    let method: SponsorMethod
-
-    var body: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(method.tint.opacity(0.18))
-                    .frame(width: 42, height: 42)
-                Image(systemName: method.symbol)
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundStyle(method.tint)
-            }
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(lm.t(method.title))
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(AppPalette.textPrimary(for: themeManager.current))
-                Text(lm.t(method.subtitle))
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(AppPalette.textSecondary(for: themeManager.current))
-                    .lineLimit(1)
-            }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(AppPalette.textTertiary(for: themeManager.current))
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(AppPalette.bgCard(for: themeManager.current))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .strokeBorder(.primary.opacity(0.05), lineWidth: 1)
-                )
-        )
-        .contentShape(Rectangle())
-    }
-}
-
-/// 二维码详情：展示二维码图片，并在存在链接时显示可点击链接
-private struct SponsorQRCodeSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var lm: LanguageManager
-    @EnvironmentObject private var themeManager: ThemeManager
-    let method: SponsorMethod
-
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                AppPalette.bgPrimary(for: themeManager.current).ignoresSafeArea()
-
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 18) {
-                        Image(method.qrAssetName)
-                            .resizable()
-                            .scaledToFit()
-                            .padding(12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                    .fill(Color.white)
-                                    .shadow(color: .black.opacity(0.08), radius: 18, x: 0, y: 10)
-                            )
-                            .padding(.horizontal, 20)
-
-                        if let url = method.url, let text = method.urlString {
-                            Link(text, destination: url)
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(AppPalette.brand)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 24)
-                        }
-                    }
-                    .padding(.top, 18)
-                    .padding(.bottom, 36)
-                }
-            }
-            .preferredColorScheme(themeManager.current.colorScheme)
-            .navigationTitle(lm.t(method.title))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(lm.t("关闭")) { dismiss() }
-                        .tint(AppPalette.brand)
-                }
-            }
-        }
     }
 }

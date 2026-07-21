@@ -237,7 +237,7 @@ struct PhotoMetadataSheet: View {
     /// 用 photos-redirect:// URL Scheme 打开苹果照片 App
     /// 注：iOS 不支持直接定位到特定照片，但能跳到 Photos.app 主页
     private func openInPhotosApp() {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        AppHaptics.impact(.light)
         if let url = URL(string: "photos-redirect://"),
            UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
@@ -248,7 +248,7 @@ struct PhotoMetadataSheet: View {
 
     /// 分享：用系统 UIActivityViewController
     private func share() {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        AppHaptics.impact(.light)
         guard let image else { return }
         let av = UIActivityViewController(activityItems: [image], applicationActivities: nil)
         // 找到当前 active window 的 rootVC 来 present

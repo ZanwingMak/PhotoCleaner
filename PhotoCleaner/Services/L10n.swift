@@ -280,5 +280,232 @@ enum L10n {
         // 月份 + 量词
         "%d 月": [.en: "%d", .ja: "%d 月", .ko: "%d월"],
 
+        // MARK: - 内购 / 付费墙 / 会员
+
+        "升级 Pro": [.en: "Upgrade to Pro", .ja: "Pro にアップグレード", .ko: "Pro로 업그레이드"],
+        "解锁 RollKeep Pro": [.en: "Unlock RollKeep Pro", .ja: "RollKeep Pro を解除", .ko: "RollKeep Pro 해제"],
+        "RollKeep Pro": [.en: "RollKeep Pro", .ja: "RollKeep Pro", .ko: "RollKeep Pro"],
+        "已解锁全部功能": [.en: "All features unlocked", .ja: "すべての機能がアンロック", .ko: "모든 기능 잠금 해제됨"],
+        "解锁全部主题与整理上限": [.en: "Unlock all themes & remove daily limits",
+                          .ja: "全テーマと整理上限を解除",
+                          .ko: "모든 테마와 정리 제한 해제"],
+
+        // 5 档商品名 + 副标
+        "周订阅":   [.en: "Weekly",    .ja: "週額", .ko: "주간 구독"],
+        "月订阅":   [.en: "Monthly",   .ja: "月額", .ko: "월간 구독"],
+        "季订阅":   [.en: "Quarterly", .ja: "3 ヶ月", .ko: "분기 구독"],
+        "年订阅":   [.en: "Yearly",    .ja: "年額", .ko: "연간 구독"],
+        "终身版":   [.en: "Lifetime",  .ja: "ライフタイム", .ko: "평생"],
+        "每周续订":   [.en: "Renews weekly",     .ja: "毎週更新",   .ko: "매주 자동 갱신"],
+        "每月续订":   [.en: "Renews monthly",    .ja: "毎月更新",   .ko: "매월 자동 갱신"],
+        "每 3 个月续订": [.en: "Renews every 3 months", .ja: "3 ヶ月ごとに更新", .ko: "3개월마다 자동 갱신"],
+        "每年续订":   [.en: "Renews yearly",     .ja: "毎年更新",   .ko: "매년 자동 갱신"],
+        "一次买断，永久使用": [.en: "One-time purchase, forever", .ja: "一回購入、永続利用", .ko: "1회 결제, 평생 사용"],
+        "最划算": [.en: "Best Value", .ja: "お得", .ko: "최고 혜택"],
+        "含 %d 天免费试用": [.en: "Includes %d-day free trial",
+                       .ja: "%d 日間の無料体験つき",
+                       .ko: "%d일 무료 체험 포함"],
+        "免费试用 %d 天": [.en: "Start %d-Day Free Trial",
+                     .ja: "%d 日間無料で試す",
+                     .ko: "%d일 무료 체험 시작"],
+        "立即解锁": [.en: "Unlock Now", .ja: "今すぐ解除", .ko: "지금 해제"],
+        "正在加载商品…": [.en: "Loading products…", .ja: "商品を読み込み中…", .ko: "상품 불러오는 중…"],
+        "可随时在 App Store 取消": [.en: "Cancel anytime in App Store",
+                            .ja: "App Store でいつでも解約可能",
+                            .ko: "App Store에서 언제든 취소 가능"],
+
+        // Paywall 特性
+        "无限审核": [.en: "Unlimited Reviews", .ja: "無制限の整理", .ko: "무제한 정리"],
+        "每天可整理的张数不再受限": [.en: "Remove the 300-photos daily cap",
+                          .ja: "1 日 300 枚の上限を解除",
+                          .ko: "하루 300장 제한 해제"],
+        "待删除列表无上限": [.en: "Unlimited Pending List", .ja: "削除予定リストが無制限", .ko: "삭제 대기 무제한"],
+        "一次性堆积任意张数照片再统一清理": [.en: "Stack any number of photos, then clean in one go",
+                             .ja: "任意の枚数を溜めてから一括削除",
+                             .ko: "원하는 만큼 쌓아두고 한 번에 정리"],
+        "单次审核无上限": [.en: "Unlimited per session", .ja: "1 セッションが無制限", .ko: "세션당 무제한"],
+        "打开分类后加载全部照片，不再被截断": [.en: "Load the full category, not just the first 50",
+                                .ja: "カテゴリ全体を読み込み（先頭 50 枚で打ち切らない）",
+                                .ko: "카테고리 전체 로드 (앞 50장으로 잘리지 않음)"],
+        "解锁时间线": [.en: "Unlock Timeline", .ja: "タイムラインを解除", .ko: "타임라인 해제"],
+        "按月份回顾你的相册": [.en: "Browse your library month by month",
+                       .ja: "月別にライブラリを振り返る",
+                       .ko: "월별로 라이브러리 돌아보기"],
+        "解锁全部主题": [.en: "All Themes Unlocked", .ja: "全テーマを解除", .ko: "모든 테마 해제"],
+        "自由切换深色/浅色/暖色/冷色": [.en: "Switch among Dark / Light / Warm / Cool freely",
+                              .ja: "ダーク / ライト / ウォーム / クールを自由に切替",
+                              .ko: "다크/라이트/웜/쿨 자유 전환"],
+
+        // Paywall 触发副标
+        "解锁全部分类整理与主题": [.en: "Unlock the full library and all themes",
+                          .ja: "全カテゴリ整理とテーマを解除",
+                          .ko: "전체 분류 정리와 모든 테마 해제"],
+        "免费版待删除列表上限 20 张，升级后无上限": [.en: "Free tier caps pending at 20. Upgrade for unlimited.",
+                                       .ja: "無料版は削除予定 20 枚まで。アップグレードで無制限。",
+                                       .ko: "무료 버전은 삭제 대기 20장까지. 업그레이드 시 무제한."],
+        "免费版单次最多加载 50 张，升级后加载全部": [.en: "Free tier loads up to 50 per session. Upgrade to load all.",
+                                       .ja: "無料版は 1 セッション 50 枚まで。アップグレードで全件読込。",
+                                       .ko: "무료 버전은 세션당 50장까지. 업그레이드 시 전체 로드."],
+        "已达今日 300 张免费上限，升级后无限审核": [.en: "Hit today's free cap of 300. Upgrade for unlimited.",
+                                       .ja: "本日 300 枚の上限に到達。アップグレードで無制限。",
+                                       .ko: "오늘 300장 한도 도달. 업그레이드 시 무제한."],
+        "时间线为 Pro 专属功能": [.en: "Timeline is a Pro feature", .ja: "タイムラインは Pro 限定", .ko: "타임라인은 Pro 전용"],
+        "切换主题为 Pro 专属功能": [.en: "Theme switching is a Pro feature",
+                          .ja: "テーマ切替は Pro 限定",
+                          .ko: "테마 전환은 Pro 전용"],
+
+        // Paywall 法务
+        "付款将在确认后从你的 Apple ID 账户中扣款；订阅会自动续订，可在 App Store 账户中随时取消。": [
+            .en: "Payment is charged to your Apple ID upon confirmation. Subscriptions auto-renew until cancelled in the App Store account settings.",
+            .ja: "確認後に Apple ID から請求されます。購読は自動更新され、App Store アカウントでいつでも解約できます。",
+            .ko: "확인 후 Apple ID에서 결제됩니다. 구독은 자동 갱신되며 App Store 계정에서 언제든 취소할 수 있습니다."
+        ],
+
+        // 已经购买 / 兑换码 / 管理订阅
+        "已经购买?": [.en: "Already Purchased?", .ja: "購入済み?", .ko: "이미 구매했나요?"],
+        "使用兑换码": [.en: "Redeem Code", .ja: "コードを使う", .ko: "코드 사용"],
+        "管理订阅": [.en: "Manage Subscriptions", .ja: "サブスク管理", .ko: "구독 관리"],
+        "已恢复 Pro 权益": [.en: "Pro restored", .ja: "Pro を復元しました", .ko: "Pro 복원됨"],
+        "未找到可恢复的购买记录": [.en: "No purchases to restore", .ja: "復元可能な購入はありません", .ko: "복원할 구매 내역 없음"],
+
+        // 支持 + 分享 + 评分
+        "支持我们": [.en: "Support Us", .ja: "応援する", .ko: "응원하기"],
+        "给个好评": [.en: "Rate the App", .ja: "アプリを評価", .ko: "앱 평가하기"],
+        "分享给朋友": [.en: "Share with Friends", .ja: "友だちにシェア", .ko: "친구에게 공유"],
+        "用 RollKeep 整理你的照片库，腾出更多空间。": [
+            .en: "Use RollKeep to tidy your photo library and free up space.",
+            .ja: "RollKeep で写真ライブラリを整理して空き容量を増やそう。",
+            .ko: "RollKeep로 사진 라이브러리를 정리하고 공간을 확보해보세요."
+        ],
+
+        // 关于 / 法务
+        "账户": [.en: "Account", .ja: "アカウント", .ko: "계정"],
+        "隐私政策": [.en: "Privacy Policy", .ja: "プライバシーポリシー", .ko: "개인정보 처리방침"],
+        "使用条款": [.en: "Terms of Use", .ja: "利用規約", .ko: "이용 약관"],
+
+        // 免费版上限 toast
+        "免费版单次仅加载前 %d 张": [.en: "Free tier loads only the first %d",
+                            .ja: "無料版は先頭 %d 枚のみ",
+                            .ko: "무료 버전은 앞 %d장만 로드"],
+        "今日剩余可整理": [.en: "Remaining Today", .ja: "本日の残り", .ko: "오늘 남은 정리"],
+        "Pro 解锁按月份回顾": [.en: "Unlock month-by-month review with Pro",
+                       .ja: "Pro で月別レビューを解除",
+                       .ko: "Pro로 월별 리뷰 해제"],
+
+        // MARK: - 1.2 整理能力与洞察
+
+        "大视频": [.en: "Large Videos", .ja: "大容量ビデオ", .ko: "대용량 비디오"],
+        "连拍照片": [.en: "Burst Photos", .ja: "バースト写真", .ko: "연사 사진"],
+        "整理进度": [.en: "Cleanup Progress", .ja: "整理の進捗", .ko: "정리 진행"],
+        "连续 %d 天 · 已审核 %d 张": [
+            .en: "%d-day streak · %d reviewed",
+            .ja: "%d 日連続 · %d 枚確認済み",
+            .ko: "%d일 연속 · %d장 검토"
+        ],
+        "查看最近整理趋势": [.en: "View recent cleanup trends", .ja: "最近の整理傾向を見る", .ko: "최근 정리 추세 보기"],
+        "升级 Pro 查看完整趋势": [.en: "Upgrade to Pro for full trends", .ja: "Pro で完全な傾向を表示", .ko: "Pro로 전체 추세 보기"],
+        "Pro 解锁完整时间线": [.en: "Unlock Full Timeline with Pro", .ja: "Pro で全タイムラインを解除", .ko: "Pro로 전체 타임라인 잠금 해제"],
+        "整理洞察": [.en: "Cleanup Insights", .ja: "整理インサイト", .ko: "정리 인사이트"],
+        "累计释放空间": [.en: "Total Space Reclaimed", .ja: "解放した合計容量", .ko: "누적 확보 공간"],
+        "已审核": [.en: "Reviewed", .ja: "確認済み", .ko: "검토 완료"],
+        "已清理": [.en: "Cleaned", .ja: "削除済み", .ko: "정리 완료"],
+        "连续天数": [.en: "Day Streak", .ja: "連続日数", .ko: "연속 일수"],
+        "最近 7 天": [.en: "Last 7 Days", .ja: "過去 7 日間", .ko: "최근 7일"],
+        "每天审核的照片数量": [.en: "Photos reviewed each day", .ja: "日ごとの確認枚数", .ko: "일별 검토 사진 수"],
+        "整理统计仅保存在这台设备上": [
+            .en: "Cleanup stats stay only on this device",
+            .ja: "整理統計はこの端末にのみ保存されます",
+            .ko: "정리 통계는 이 기기에만 저장됩니다"
+        ],
+        "排序": [.en: "Sort", .ja: "並べ替え", .ko: "정렬"],
+        "最新优先": [.en: "Newest First", .ja: "新しい順", .ko: "최신순"],
+        "最早优先": [.en: "Oldest First", .ja: "古い順", .ko: "오래된순"],
+        "空间优先": [.en: "Largest First", .ja: "容量順", .ko: "용량순"],
+        "请先处理待删除列表": [
+            .en: "Finish the pending list before changing sort",
+            .ja: "並べ替え前に削除予定を処理してください",
+            .ko: "정렬 변경 전에 삭제 대기 목록을 처리하세요"
+        ],
+        "预计释放": [.en: "Est. Space", .ja: "推定容量", .ko: "예상 공간"],
+
+        // MARK: - 1.2 付费墙
+
+        "空间优先整理": [.en: "Largest First", .ja: "容量優先の整理", .ko: "용량 우선 정리"],
+        "优先查看最占空间的照片和视频": [
+            .en: "Review the biggest photos and videos first",
+            .ja: "容量の大きい写真とビデオから確認",
+            .ko: "용량이 큰 사진과 비디오부터 검토"
+        ],
+        "完整时间线": [.en: "Full Timeline", .ja: "全タイムライン", .ko: "전체 타임라인"],
+        "回顾全部月份，不限最近半年": [
+            .en: "Browse every month, beyond the recent six",
+            .ja: "直近 6 か月を超えてすべての月を表示",
+            .ko: "최근 6개월을 넘어 모든 월 보기"
+        ],
+        "查看释放空间、连续天数和趋势": [
+            .en: "Track reclaimed space, streaks, and trends",
+            .ja: "解放容量、連続日数、傾向を確認",
+            .ko: "확보 공간, 연속 일수, 추세 확인"
+        ],
+        "解锁焦糖暖与冷色主题": [
+            .en: "Unlock Caramel and Cool themes",
+            .ja: "キャラメルとクールテーマを解除",
+            .ko: "캐러멜 및 쿨 테마 잠금 해제"
+        ],
+        "暂时无法加载商品": [.en: "Products are temporarily unavailable", .ja: "商品を読み込めません", .ko: "상품을 불러올 수 없습니다"],
+        "重新加载": [.en: "Try Again", .ja: "再読み込み", .ko: "다시 불러오기"],
+        "最受欢迎": [.en: "Most Popular", .ja: "人気", .ko: "인기"],
+        "一次购买，永久使用": [.en: "One purchase, yours forever", .ja: "一度の購入で永久利用", .ko: "한 번 구매로 평생 사용"],
+        "解锁无限整理与深度洞察": [
+            .en: "Unlock unlimited cleanup and deeper insights",
+            .ja: "無制限の整理と詳細インサイトを解除",
+            .ko: "무제한 정리와 심층 인사이트 잠금 해제"
+        ],
+        "免费版待删除列表上限 50 张，升级后无上限": [
+            .en: "Free tier holds 50 pending items. Pro is unlimited.",
+            .ja: "無料版は削除予定 50 枚まで。Pro は無制限です。",
+            .ko: "무료 버전은 삭제 대기 50장까지, Pro는 무제한입니다."
+        ],
+        "升级后可回顾完整月份时间线": [
+            .en: "Upgrade to browse your complete monthly timeline",
+            .ja: "アップグレードですべての月を振り返る",
+            .ko: "업그레이드하여 전체 월별 타임라인 보기"
+        ],
+        "升级后优先清理最占空间的内容": [
+            .en: "Upgrade to clean the largest items first",
+            .ja: "アップグレードで大容量項目から整理",
+            .ko: "업그레이드하여 용량이 큰 항목부터 정리"
+        ],
+        "升级后查看完整整理趋势": [
+            .en: "Upgrade to view your full cleanup trends",
+            .ja: "アップグレードで整理傾向をすべて表示",
+            .ko: "업그레이드하여 전체 정리 추세 보기"
+        ],
+        "焦糖暖与冷色调为 Pro 专属主题": [
+            .en: "Caramel and Cool are Pro themes",
+            .ja: "キャラメルとクールは Pro 限定テーマです",
+            .ko: "캐러멜과 쿨은 Pro 전용 테마입니다"
+        ],
+        "会员": [.en: "Member", .ja: "メンバー", .ko: "멤버십"],
+        "升级会员": [.en: "Unlock Membership", .ja: "メンバーシップを解除", .ko: "멤버십 잠금 해제"],
+        "RollKeep 会员": [.en: "RollKeep Membership", .ja: "RollKeep メンバーシップ", .ko: "RollKeep 멤버십"],
+        "解锁完整体验": [.en: "Unlock the Full Experience", .ja: "すべての機能を解除", .ko: "전체 경험 잠금 해제"],
+        "升级会员查看完整趋势": [
+            .en: "Unlock membership for full trends",
+            .ja: "メンバーシップで完全な傾向を表示",
+            .ko: "멤버십으로 전체 추세 보기"
+        ],
+        "会员解锁完整时间线": [
+            .en: "Membership Unlocks Full Timeline",
+            .ja: "メンバーシップで全タイムラインを解除",
+            .ko: "멤버십으로 전체 타임라인 잠금 해제"
+        ],
+        "已恢复会员权益": [.en: "Membership restored", .ja: "メンバーシップを復元しました", .ko: "멤버십 복원됨"],
+        "焦糖暖与冷色调为会员专属主题": [
+            .en: "Caramel and Cool are membership themes",
+            .ja: "キャラメルとクールはメンバー限定テーマです",
+            .ko: "캐러멜과 쿨은 멤버십 전용 테마입니다"
+        ],
+
     ]
 }

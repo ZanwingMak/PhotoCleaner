@@ -32,6 +32,11 @@
 		BF000000000000000000A017 /* LivePhotoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A017 /* LivePhotoView.swift */; };
 		BF000000000000000000A018 /* CustomDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A018 /* CustomDialog.swift */; };
 		BF000000000000000000A019 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A019 /* UpdateChecker.swift */; };
+		BF000000000000000000A01A /* StoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01A /* StoreService.swift */; };
+		BF000000000000000000A01B /* UsageTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01B /* UsageTracker.swift */; };
+		BF000000000000000000A01C /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01C /* PaywallView.swift */; };
+		BF000000000000000000A01D /* CleanupInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01D /* CleanupInsightsView.swift */; };
+		BF000000000000000000A01E /* AppHaptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01E /* AppHaptics.swift */; };
 		BF000000000000000000B001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000B001 /* Assets.xcassets */; };
 		BF000000000000000000D001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = VG000000000000000000D001 /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
@@ -63,6 +68,12 @@
 		F0000000000000000000A017 /* LivePhotoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePhotoView.swift; sourceTree = "<group>"; };
 		F0000000000000000000A018 /* CustomDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDialog.swift; sourceTree = "<group>"; };
 		F0000000000000000000A019 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
+		F0000000000000000000A01A /* StoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreService.swift; sourceTree = "<group>"; };
+		F0000000000000000000A01B /* UsageTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageTracker.swift; sourceTree = "<group>"; };
+		F0000000000000000000A01C /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		F0000000000000000000A01D /* CleanupInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupInsightsView.swift; sourceTree = "<group>"; };
+		F0000000000000000000A01E /* AppHaptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHaptics.swift; sourceTree = "<group>"; };
+		F0000000000000000000B003 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text.json.storekit; path = Products.storekit; sourceTree = "<group>"; };
 		F0000000000000000000B001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F0000000000000000000B002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F0000000000000000000D001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -101,6 +112,7 @@
 				F0000000000000000000B001 /* Assets.xcassets */,
 				VG000000000000000000D001 /* InfoPlist.strings */,
 				F0000000000000000000B002 /* Info.plist */,
+				F0000000000000000000B003 /* Products.storekit */,
 			);
 			path = PhotoCleaner;
 			sourceTree = "<group>";
@@ -130,6 +142,9 @@
 				F0000000000000000000A015 /* LanguageManager.swift */,
 				F0000000000000000000A016 /* L10n.swift */,
 				F0000000000000000000A019 /* UpdateChecker.swift */,
+				F0000000000000000000A01A /* StoreService.swift */,
+				F0000000000000000000A01B /* UsageTracker.swift */,
+				F0000000000000000000A01E /* AppHaptics.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -153,6 +168,8 @@
 				F0000000000000000000A011 /* SettingsView.swift */,
 				F0000000000000000000A013 /* PhotoMetadataSheet.swift */,
 				F0000000000000000000A014 /* PhotoDetailView.swift */,
+				F0000000000000000000A01C /* PaywallView.swift */,
+				F0000000000000000000A01D /* CleanupInsightsView.swift */,
 				G000000000000000000000008 /* Components */,
 			);
 			path = Views;
@@ -285,6 +302,11 @@
 				BF000000000000000000A017 /* LivePhotoView.swift in Sources */,
 				BF000000000000000000A018 /* CustomDialog.swift in Sources */,
 				BF000000000000000000A019 /* UpdateChecker.swift in Sources */,
+				BF000000000000000000A01A /* StoreService.swift in Sources */,
+				BF000000000000000000A01B /* UsageTracker.swift in Sources */,
+				BF000000000000000000A01C /* PaywallView.swift in Sources */,
+				BF000000000000000000A01D /* CleanupInsightsView.swift in Sources */,
+				BF000000000000000000A01E /* AppHaptics.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -411,7 +433,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 2Q2LMV7BR6;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
@@ -425,7 +447,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.9;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.rollkeep.RollKeep;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -440,7 +462,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 2Q2LMV7BR6;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
@@ -454,7 +476,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.9;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.rollkeep.RollKeep;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "RollKeep App Store";

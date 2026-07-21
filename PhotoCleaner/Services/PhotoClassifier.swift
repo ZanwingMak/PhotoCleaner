@@ -20,6 +20,10 @@ enum PhotoClassifier {
             return asset.mediaSubtypes.contains(.photoScreenshot)
         case .oldScreenshot:
             return isOldScreenshot(asset)
+        case .burst:
+            return asset.representsBurst || asset.burstIdentifier != nil
+        case .largeVideo:
+            return asset.mediaType == .video && estimatedSize(of: asset) >= 100 * 1024 * 1024
         case .selfie:
             return isLikelySelfie(asset)
         case .camera:
@@ -67,6 +71,9 @@ enum PhotoClassifier {
         if kind == .largeFile {
             return isLikelyLargeFileByMetadata(asset)
         }
+        if kind == .largeVideo {
+            return isLikelyLargeVideoByMetadata(asset)
+        }
         return matches(asset, kind: kind)
     }
 
@@ -89,6 +96,13 @@ enum PhotoClassifier {
             return asset.duration >= 30 || pixels >= 8_000_000
         }
         return asset.mediaSubtypes.contains(.photoPanorama) || pixels >= 12_000_000
+    }
+
+    /// 只用时长与像素数估算大视频，避免首页扫描逐个读取资源文件
+    private static func isLikelyLargeVideoByMetadata(_ asset: PHAsset) -> Bool {
+        guard asset.mediaType == .video else { return false }
+        let pixels = Int64(asset.pixelWidth) * Int64(asset.pixelHeight)
+        return asset.duration >= 60 || (asset.duration >= 20 && pixels >= 8_000_000)
     }
 
     /// 判断是否是 90 天以前的截图，用于让「陈年截图」入口和文案一致

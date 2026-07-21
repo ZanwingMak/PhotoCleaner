@@ -11,6 +11,7 @@ struct PendingDeletionView: View {
     @EnvironmentObject private var library: PhotoLibraryService
     @EnvironmentObject private var lm: LanguageManager
     @EnvironmentObject private var themeManager: ThemeManager
+    @EnvironmentObject private var usage: UsageTracker
     @Environment(\.dismiss) private var dismiss
 
     /// 选中的 localIdentifier 集合（默认进入时全选）
@@ -75,7 +76,7 @@ struct PendingDeletionView: View {
                 if !vm.pendingDeletion.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
-                            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                            AppHaptics.impact(.soft)
                             toggleAll()
                         } label: {
                             Text(isAllSelected ? lm.t("全不选") : lm.t("全选"))
@@ -109,7 +110,7 @@ struct PendingDeletionView: View {
 
     /// 单击切换选中
     private func toggle(_ asset: PHAsset) {
-        UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+        AppHaptics.impact(.soft)
         let id = asset.localIdentifier
         withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
             if selectedIds.contains(id) {
@@ -214,10 +215,14 @@ struct PendingDeletionView: View {
     private func performDelete() async {
         let toDelete = selectedAssets
         guard !toDelete.isEmpty else { return }
+        let freedBytes = toDelete.reduce(Int64(0)) {
+            $0 + PhotoClassifier.estimatedSize(of: $1)
+        }
         isDeleting = true
         let success = await library.deleteAssets(toDelete)
         isDeleting = false
         if success {
+            usage.recordDeletion(count: toDelete.count, freedBytes: freedBytes)
             let deletedIds = Set(toDelete.map { $0.localIdentifier })
             vm.pendingDeletion.removeAll { deletedIds.contains($0.localIdentifier) }
             vm.assets.removeAll { deletedIds.contains($0.localIdentifier) }

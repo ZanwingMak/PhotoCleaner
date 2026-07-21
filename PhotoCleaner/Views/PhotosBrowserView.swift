@@ -81,7 +81,7 @@ struct PhotosBrowserView: View {
                                 ForEach(filteredAssets, id: \.localIdentifier) { asset in
                                     PhotoGridThumb(asset: asset)
                                         .onTapGesture {
-                                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                            AppHaptics.impact(.light)
                                             previewAsset = asset
                                         }
                                         .contextMenu {
@@ -138,7 +138,7 @@ struct PhotosBrowserView: View {
             HStack(spacing: 8) {
                 ForEach(PhotosFilter.allCases) { f in
                     Button {
-                        UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                        AppHaptics.impact(.soft)
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             filter = f
                         }

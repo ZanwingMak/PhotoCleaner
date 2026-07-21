@@ -10,6 +10,8 @@ struct PhotoCleanerApp: App {
     @StateObject private var photoLibrary = PhotoLibraryService()
     @StateObject private var themeManager = ThemeManager()
     @StateObject private var languageManager = LanguageManager()
+    @StateObject private var store = StoreService()
+    @StateObject private var usage = UsageTracker()
 
     var body: some Scene {
         WindowGroup {
@@ -19,7 +21,15 @@ struct PhotoCleanerApp: App {
                 .environmentObject(photoLibrary)
                 .environmentObject(themeManager)
                 .environmentObject(languageManager)
+                .environmentObject(store)
+                .environmentObject(usage)
                 .tint(AppPalette.brand)
+                .task {
+                    // 启动时拉一次商品；权益由 StoreService.init 内部已经异步刷新
+                    if store.products.isEmpty {
+                        await store.loadProducts()
+                    }
+                }
         }
     }
 }

@@ -75,6 +75,9 @@ final class PhotoLibraryService: ObservableObject {
             return all
 
         case .inferred(let kind):
+            if kind == .burst {
+                options.includeAllBurstAssets = true
+            }
             return filteredAssets(from: PHAsset.fetchAssets(with: options)) {
                 PhotoClassifier.matchesForLibraryScan($0, kind: kind)
             }
@@ -205,7 +208,8 @@ final class PhotoLibraryService: ObservableObject {
 
         result.enumerateObjects { asset, _, _ in
             autoreleasepool {
-                for kind in PhotoCategory.InferredKind.allCases where kind != .allUnsorted {
+                for kind in PhotoCategory.InferredKind.allCases
+                    where kind != .allUnsorted && kind != .burst {
                     if PhotoClassifier.matchesForLibraryScan(asset, kind: kind) {
                         counts[PhotoCategory.inferred(kind).id, default: 0] += 1
                     }
@@ -224,6 +228,8 @@ final class PhotoLibraryService: ObservableObject {
                 bucketMap[key, default: (year, month, 0)].count += 1
             }
         }
+
+        counts[PhotoCategory.inferred(.burst).id] = countBurstAssets()
 
         let buckets = bucketMap.values
             .map { MonthBucket(year: $0.year, month: $0.month, count: $0.count) }
@@ -254,6 +260,20 @@ final class PhotoLibraryService: ObservableObject {
         var count = 0
         collections.enumerateObjects { collection, _, _ in
             count += PHAsset.fetchAssets(in: collection, options: nil).count
+        }
+        return count
+    }
+
+    /// 统计所有连拍成员数量，确保首页数字与进入分类后的结果一致
+    private nonisolated static func countBurstAssets() -> Int {
+        let options = PHFetchOptions()
+        options.includeAllBurstAssets = true
+        let result = PHAsset.fetchAssets(with: options)
+        var count = 0
+        result.enumerateObjects { asset, _, _ in
+            if asset.representsBurst || asset.burstIdentifier != nil {
+                count += 1
+            }
         }
         return count
     }

@@ -47,6 +47,8 @@ enum PhotoCategory: Identifiable, Hashable {
         case unsortedVideo // 未整理的视频
         case screenshot    // 未整理的截图
         case oldScreenshot // 陈年截图
+        case burst         // 连拍照片
+        case largeVideo    // 大视频
         case selfie        // 自拍
         case camera        // 相机原图
         case social        // 社交媒体
@@ -61,6 +63,8 @@ enum PhotoCategory: Identifiable, Hashable {
             case .unsortedVideo: return "未整理的视频"
             case .screenshot:    return "未整理的截图"
             case .oldScreenshot: return "陈年截图"
+            case .burst:         return "连拍照片"
+            case .largeVideo:    return "大视频"
             case .selfie:        return "自拍"
             case .camera:        return "相机原图"
             case .social:        return "社交媒体"
@@ -103,6 +107,8 @@ enum PhotoCategory: Identifiable, Hashable {
             case .unsortedVideo: return "video"
             case .screenshot:    return "rectangle.dashed"
             case .oldScreenshot: return "calendar.badge.exclamationmark"
+            case .burst:         return "square.stack.3d.up.fill"
+            case .largeVideo:    return "video.badge.ellipsis"
             case .selfie:        return "person.crop.circle"
             case .camera:        return "camera.aperture"
             case .social:        return "bubble.left.and.bubble.right"
@@ -133,6 +139,8 @@ enum PhotoCategory: Identifiable, Hashable {
             case .unsortedVideo: return .gray
             case .screenshot:    return .gray
             case .oldScreenshot: return .blue
+            case .burst:         return .orange
+            case .largeVideo:    return .red
             case .selfie:        return .pink
             case .camera:        return .orange
             case .social:        return .purple

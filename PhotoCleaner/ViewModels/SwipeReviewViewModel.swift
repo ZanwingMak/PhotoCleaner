@@ -27,6 +27,14 @@ final class SwipeReviewViewModel: ObservableObject {
     @Published var currentIndex: Int = 0
     @Published var pendingDeletion: [PHAsset] = []
     @Published var deleteHistory: [SwipeRecord] = []
+    /// 当前会话加载的实际可见照片数
+    @Published var sessionLoadedCount: Int = 0
+    /// 当前会话原始可加载照片数
+    @Published var sessionTotalCount: Int = 0
+    /// 当前会话已经做出保留或删除决定的照片数
+    @Published private(set) var sessionReviewedCount: Int = 0
+
+    private var reviewedAssetIDs = Set<String>()
 
     /// 是否还有当前可显示的照片
     var hasMore: Bool { currentIndex < assets.count }
@@ -57,15 +65,38 @@ final class SwipeReviewViewModel: ObservableObject {
             currentIndex -= 1
 
         case .next:
-            guard canGoNext else { return }
-            currentIndex += 1
+            guard hasMore, let asset = currentAsset else { return }
+            markReviewed(asset)
+            currentIndex = min(currentIndex + 1, assets.count)
 
         case .markDelete:
             guard hasMore else { return }
             let asset = assets[currentIndex]
-            deleteHistory.append(SwipeRecord(asset: asset, fromIndex: currentIndex))
-            pendingDeletion.append(asset)
+            markReviewed(asset)
+            if !pendingDeletion.contains(where: { $0.localIdentifier == asset.localIdentifier }) {
+                deleteHistory.append(SwipeRecord(asset: asset, fromIndex: currentIndex))
+                pendingDeletion.append(asset)
+            }
             currentIndex = min(currentIndex + 1, assets.count)
+        }
+    }
+
+    /// 为新分类重置会话状态
+    func reset(with newAssets: [PHAsset]) {
+        assets = newAssets
+        currentIndex = 0
+        pendingDeletion = []
+        deleteHistory = []
+        reviewedAssetIDs.removeAll()
+        sessionReviewedCount = 0
+        sessionLoadedCount = newAssets.count
+        sessionTotalCount = newAssets.count
+    }
+
+    /// 将资产计入本次已审核数量，同一张只统计一次
+    private func markReviewed(_ asset: PHAsset) {
+        if reviewedAssetIDs.insert(asset.localIdentifier).inserted {
+            sessionReviewedCount = reviewedAssetIDs.count
         }
     }
 

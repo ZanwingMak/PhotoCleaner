@@ -1,0 +1,100 @@
+{
+  "identifier" : "B7E0F7D5-RK-LOCAL",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "88.00",
+      "familyShareable" : false,
+      "internalID" : "RKLT0001",
+      "localizations" : [
+        {
+          "description" : "永久解锁 RollKeep 完整体验。",
+          "displayName" : "终身版",
+          "locale" : "zh_CN"
+        },
+        {
+          "description" : "Unlock the complete RollKeep experience forever.",
+          "displayName" : "Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "app.rollkeep.RollKeep.lifetime",
+      "referenceName" : "Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "zh_CN",
+    "_storefront" : "CHN",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "RKSUBGRP01",
+      "localizations" : [],
+      "name" : "RollKeep Membership",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "12.00",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "RKSUB002",
+          "localizations" : [
+            {
+              "description" : "月订阅",
+              "displayName" : "月订阅",
+              "locale" : "zh_CN"
+            },
+            {
+              "description" : "Monthly",
+              "displayName" : "Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "app.rollkeep.RollKeep.sub.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Monthly",
+          "subscriptionGroupID" : "RKSUBGRP01",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "48.00",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "RKSUB004",
+          "introductoryOffer" : {
+            "internalID" : "RKSUB004INTRO",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "年订阅",
+              "displayName" : "年订阅",
+              "locale" : "zh_CN"
+            },
+            {
+              "description" : "Yearly",
+              "displayName" : "Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "app.rollkeep.RollKeep.sub.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Yearly",
+          "subscriptionGroupID" : "RKSUBGRP01",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

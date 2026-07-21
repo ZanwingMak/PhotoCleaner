@@ -163,7 +163,7 @@ struct PhotoDetailView: View {
 
     private func iconButton(symbol: String, tint: Color, action: @escaping () -> Void) -> some View {
         Button {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            AppHaptics.impact(.light)
             action()
         } label: {
             Image(systemName: symbol)

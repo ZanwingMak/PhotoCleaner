@@ -6,6 +6,29 @@
 import SwiftUI
 import Photos
 
+/// 审核队列排序方式
+private enum ReviewSortOption: String, CaseIterable {
+    case newest
+    case oldest
+    case largest
+
+    var titleKey: String {
+        switch self {
+        case .newest:  return "最新优先"
+        case .oldest:  return "最早优先"
+        case .largest: return "空间优先"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .newest:  return "calendar.badge.clock"
+        case .oldest:  return "clock.arrow.circlepath"
+        case .largest: return "externaldrive.fill.badge.plus"
+        }
+    }
+}
+
 /// 顶部胶囊点击后弹出的分类选择 sheet
 struct CategoryPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
@@ -74,7 +97,7 @@ struct CategoryPickerSheet: View {
     private func row(_ cat: PhotoCategory) -> some View {
         let selected = (cat.id == currentId)
         return Button {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            AppHaptics.impact(.light)
             onPick(cat)
         } label: {
             HStack(spacing: 14) {
@@ -112,6 +135,8 @@ struct SwipeReviewView: View {
     let category: PhotoCategory
     @EnvironmentObject private var library: PhotoLibraryService
     @EnvironmentObject private var lm: LanguageManager
+    @EnvironmentObject private var store: StoreService
+    @EnvironmentObject private var usage: UsageTracker
     @StateObject private var vm: SwipeReviewViewModel
     @Environment(\.dismiss) private var dismiss
 
@@ -122,6 +147,9 @@ struct SwipeReviewView: View {
     @State private var showCategoryPicker = false
     @State private var showMetadata = false
     @State private var currentCategory: PhotoCategory
+    @State private var showPaywall = false
+    @State private var paywallReason: PaywallReason = .upgrade
+    @State private var sortOption: ReviewSortOption = .newest
 
     /// 退出/切换时待处理的目标：dismiss 或切换到某分类
     @State private var pendingExitConfirm: PendingExitAction? = nil
@@ -221,6 +249,9 @@ struct SwipeReviewView: View {
                     .presentationDragIndicator(.visible)
             }
         }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(reason: paywallReason)
+        }
         .sheet(isPresented: $showCategoryPicker) {
             CategoryPickerSheet(currentId: currentCategory.id) { newCategory in
                 // 切分类前检查待删除
@@ -275,18 +306,70 @@ struct SwipeReviewView: View {
     private func switchCategory(to newCategory: PhotoCategory) {
         currentCategory = newCategory
         hasLoaded = false
-        vm.assets = []
-        vm.currentIndex = 0
-        vm.pendingDeletion = []
-        vm.deleteHistory = []
+        vm.reset(with: [])
         showCategoryPicker = false
         Task { await loadAssets(for: newCategory) }
     }
 
+    /// 按当前排序加载完整分类队列；免费用户仍受每日审核上限保护
     private func loadAssets(for cat: PhotoCategory) async {
-        let assets = library.fetchAssets(for: cat)
-        vm.assets = assets
+        let allAssets = library.fetchAssets(for: cat)
+        let orderedAssets = sortAssets(allAssets, by: sortOption)
+        vm.reset(with: orderedAssets)
         hasLoaded = true
+    }
+
+    /// 根据选择对审核队列排序；空间优先使用资产实际资源大小
+    private func sortAssets(_ assets: [PHAsset], by option: ReviewSortOption) -> [PHAsset] {
+        switch option {
+        case .newest:
+            return assets.sorted { ($0.creationDate ?? .distantPast) > ($1.creationDate ?? .distantPast) }
+        case .oldest:
+            return assets.sorted { ($0.creationDate ?? .distantFuture) < ($1.creationDate ?? .distantFuture) }
+        case .largest:
+            let sizedAssets = assets.map { asset in
+                (asset: asset, bytes: PhotoClassifier.estimatedSize(of: asset))
+            }
+            return sizedAssets.sorted { $0.bytes > $1.bytes }.map(\.asset)
+        }
+    }
+
+    /// 应用新的排序方式；存在未处理删除项时保持当前会话不变
+    private func selectSortOption(_ option: ReviewSortOption) {
+        guard vm.pendingDeletion.isEmpty else {
+            toast = ToastInfo(symbol: "tray.full.fill",
+                              text: lm.t("请先处理待删除列表"),
+                              tint: AppPalette.brand)
+            return
+        }
+        if option == .largest && !store.isPro {
+            paywallReason = .spacePriorityLocked
+            showPaywall = true
+            return
+        }
+        sortOption = option
+        hasLoaded = false
+        Task { await loadAssets(for: currentCategory) }
+    }
+
+    /// 免费版规则检查：返回 true 表示允许继续；false 表示已弹付费墙
+    private func enforceFreeLimits(for action: SwipeAction) -> Bool {
+        if store.isPro || action == .previous { return true }
+
+        // 1) 每日审核上限
+        if !usage.canReviewMore(isPro: false) {
+            paywallReason = .dailyLimit
+            showPaywall = true
+            return false
+        }
+
+        // 2) 待删除列表上限（仅在 markDelete 时校验）
+        if action == .markDelete && vm.pendingDeletion.count >= FreeLimits.pendingMax {
+            paywallReason = .pendingFull
+            showPaywall = true
+            return false
+        }
+        return true
     }
 
     // MARK: - 顶部三件套
@@ -295,7 +378,7 @@ struct SwipeReviewView: View {
         HStack(spacing: 0) {
             // X 关闭：明确 contentShape 确保整个 frame 可点
             Button {
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                AppHaptics.impact(.light)
                 if vm.pendingDeletion.isEmpty {
                     dismiss()
                 } else {
@@ -314,7 +397,7 @@ struct SwipeReviewView: View {
 
             // 中央胶囊：点击弹出分类选择 sheet
             Button {
-                UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                AppHaptics.impact(.soft)
                 showCategoryPicker = true
             } label: {
                 HStack(spacing: 6) {
@@ -336,9 +419,11 @@ struct SwipeReviewView: View {
 
             Spacer()
 
+            sortMenu
+
             // 垃圾桶 + badge
             Button {
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                AppHaptics.impact(.light)
                 showPendingSheet = true
             } label: {
                 trashWithBadge
@@ -347,6 +432,32 @@ struct SwipeReviewView: View {
             }
             .buttonStyle(.plain)
         }
+    }
+
+    /// 排序菜单：最新/最早免费，空间优先为 Pro 能力
+    private var sortMenu: some View {
+        Menu {
+            ForEach(ReviewSortOption.allCases, id: \.rawValue) { option in
+                Button {
+                    selectSortOption(option)
+                } label: {
+                    if option == .largest && !store.isPro {
+                        Label("\(lm.t(option.titleKey)) · \(lm.t("会员"))", systemImage: "lock.fill")
+                    } else if option == sortOption {
+                        Label(lm.t(option.titleKey), systemImage: "checkmark")
+                    } else {
+                        Label(lm.t(option.titleKey), systemImage: option.symbol)
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: "arrow.up.arrow.down")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel(lm.t("排序"))
     }
 
     /// 垃圾桶 + 内嵌不裁切的红色 badge
@@ -600,7 +711,7 @@ struct SwipeReviewView: View {
                 }
                 // 左滑（手指向左）→ 下一张（标准方向）
                 if h < -hThreshold {
-                    if vm.canGoNext {
+                    if vm.hasMore {
                         trigger(.next, direction: .left)
                     } else {
                         dragOffset = .zero
@@ -623,8 +734,19 @@ struct SwipeReviewView: View {
     /// 触发动作：spring 推进 dragOffset → coverflow 自然完成 → 静默切换数据
     /// 不再用 exitDirection 触发双重动画
     private func trigger(_ action: SwipeAction, direction: ExitDirection) {
-        let style: UIImpactFeedbackGenerator.FeedbackStyle = (action == .markDelete) ? .heavy : .light
-        UIImpactFeedbackGenerator(style: style).impactOccurred()
+        // 免费版上限校验：未通过则中止动作并弹付费墙
+        guard enforceFreeLimits(for: action) else {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                dragOffset = .zero
+            }
+            return
+        }
+        // 只有做出保留/删除决定才计入审核，返回上一张不重复消耗额度
+        if action != .previous {
+            usage.recordReview(isPro: store.isPro)
+        }
+
+        AppHaptics.impact(action == .markDelete ? .heavy : .light)
 
         // 推进 dragOffset 到屏幕外，coverflow 各卡跟随到目标位置
         let target: CGSize
@@ -731,7 +853,7 @@ struct SwipeReviewView: View {
             // 左下：信息按钮（弹元数据 sheet）
             actionButton(symbol: "info.circle", title: lm.t("信息"), color: .white,
                          disabled: vm.currentAsset == nil) {
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                AppHaptics.impact(.light)
                 showMetadata = true
             }
 
@@ -739,7 +861,7 @@ struct SwipeReviewView: View {
 
             actionButton(symbol: "arrow.uturn.backward", title: lm.t("撤销"), color: .white,
                          disabled: vm.deleteHistory.isEmpty) {
-                UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                AppHaptics.impact(.soft)
                 vm.undoLastDelete()
             }
 
@@ -747,11 +869,7 @@ struct SwipeReviewView: View {
 
             actionButton(symbol: "arrow.down", title: lm.t("保留"), color: .white,
                          disabled: !vm.hasMore) {
-                if vm.canGoNext {
-                    trigger(.next, direction: .left)
-                } else {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                }
+                trigger(.next, direction: .left)
             }
 
             Spacer()
@@ -817,13 +935,21 @@ struct SwipeReviewView: View {
     // MARK: - 完成态
 
     private var finishedState: some View {
-        VStack(spacing: 18) {
+        VStack(spacing: 16) {
             Image(systemName: "checkmark.seal.fill")
                 .font(.system(size: 64))
                 .foregroundStyle(.green)
             Text(lm.t("已审核完成"))
                 .font(.title2.weight(.bold))
                 .foregroundStyle(.white)
+
+            HStack(spacing: 10) {
+                sessionMetric(value: "\(vm.sessionReviewedCount)", label: lm.t("已审核"))
+                sessionMetric(value: "\(vm.pendingDeletion.count)", label: lm.t("待删除"))
+                sessionMetric(value: pendingSizeText, label: lm.t("预计释放"))
+            }
+            .padding(.vertical, 4)
+
             if vm.pendingDeletion.isEmpty {
                 Text(lm.t("没有标记任何照片待删除。"))
                     .foregroundStyle(.white.opacity(0.6))
@@ -843,5 +969,31 @@ struct SwipeReviewView: View {
             }
         }
         .padding()
+    }
+
+    /// 构建完成页的单个会话指标
+    private func sessionMetric(value: String, label: String) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(label)
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(.white.opacity(0.55))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(RoundedRectangle(cornerRadius: 14).fill(.white.opacity(0.08)))
+        .accessibilityElement(children: .combine)
+    }
+
+    /// 当前待删除资产的预计空间
+    private var pendingSizeText: String {
+        let bytes = vm.pendingDeletion.reduce(Int64(0)) {
+            $0 + PhotoClassifier.estimatedSize(of: $1)
+        }
+        return ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
     }
 }
