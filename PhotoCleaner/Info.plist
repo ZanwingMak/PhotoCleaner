@@ -31,10 +31,6 @@
 		<key>UIColorName</key>
 		<string></string>
 	</dict>
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		<string>armv7</string>
-	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -46,7 +42,5 @@
 	</dict>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>RollKeep needs access to your photos to organize your library and free up storage. All deletions require your confirmation.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>RollKeep uses add-only access only when saving photos back to your library.</string>
 </dict>
 </plist>

@@ -38,6 +38,7 @@
 		BF000000000000000000A01D /* CleanupInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01D /* CleanupInsightsView.swift */; };
 		BF000000000000000000A01E /* AppHaptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01E /* AppHaptics.swift */; };
 		BF000000000000000000B001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000B001 /* Assets.xcassets */; };
+		BF000000000000000000B004 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000B004 /* PrivacyInfo.xcprivacy */; };
 		BF000000000000000000D001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = VG000000000000000000D001 /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
 
@@ -74,6 +75,7 @@
 		F0000000000000000000A01D /* CleanupInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupInsightsView.swift; sourceTree = "<group>"; };
 		F0000000000000000000A01E /* AppHaptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHaptics.swift; sourceTree = "<group>"; };
 		F0000000000000000000B003 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text.json.storekit; path = Products.storekit; sourceTree = "<group>"; };
+		F0000000000000000000B004 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F0000000000000000000B001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F0000000000000000000B002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F0000000000000000000D001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -113,6 +115,7 @@
 				VG000000000000000000D001 /* InfoPlist.strings */,
 				F0000000000000000000B002 /* Info.plist */,
 				F0000000000000000000B003 /* Products.storekit */,
+				F0000000000000000000B004 /* PrivacyInfo.xcprivacy */,
 			);
 			path = PhotoCleaner;
 			sourceTree = "<group>";
@@ -252,6 +255,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF000000000000000000B001 /* Assets.xcassets in Resources */,
+				BF000000000000000000B004 /* PrivacyInfo.xcprivacy in Resources */,
 				BF000000000000000000D001 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -433,7 +437,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_TEAM = 2Q2LMV7BR6;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
@@ -447,7 +451,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = app.rollkeep.RollKeep;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -462,7 +466,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_TEAM = 2Q2LMV7BR6;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
@@ -476,7 +480,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = app.rollkeep.RollKeep;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "RollKeep App Store";

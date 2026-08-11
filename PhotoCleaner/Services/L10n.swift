@@ -355,15 +355,34 @@ enum L10n {
                           .ko: "테마 전환은 Pro 전용"],
 
         // Paywall 法务
-        "付款将在确认后从你的 Apple ID 账户中扣款；订阅会自动续订，可在 App Store 账户中随时取消。": [
-            .en: "Payment is charged to your Apple ID upon confirmation. Subscriptions auto-renew until cancelled in the App Store account settings.",
-            .ja: "確認後に Apple ID から請求されます。購読は自動更新され、App Store アカウントでいつでも解約できます。",
-            .ko: "확인 후 Apple ID에서 결제됩니다. 구독은 자동 갱신되며 App Store 계정에서 언제든 취소할 수 있습니다."
+        "付款将在确认后从 Apple ID 扣款；订阅会自动续订，并在当前周期结束前 24 小时内收费。你可以随时在 App Store 账户设置中取消。": [
+            .en: "Payment is charged to your Apple ID upon confirmation. Subscriptions auto-renew and are charged within 24 hours before the current period ends. Cancel anytime in App Store account settings.",
+            .ja: "確認後に Apple ID から請求されます。購読は自動更新され、現在の期間終了前 24 時間以内に課金されます。App Store のアカウント設定でいつでも解約できます。",
+            .ko: "확인 후 Apple ID에서 결제됩니다. 구독은 자동 갱신되며 현재 기간 종료 전 24시간 이내에 청구됩니다. App Store 계정 설정에서 언제든 취소할 수 있습니다."
+        ],
+        "%@ / 月，自动续订直至取消": [
+            .en: "%@ / month, auto-renews until cancelled",
+            .ja: "%@ / 月、解約するまで自動更新",
+            .ko: "%@ / 월, 취소할 때까지 자동 갱신"
+        ],
+        "%@ / 年，自动续订直至取消": [
+            .en: "%@ / year, auto-renews until cancelled",
+            .ja: "%@ / 年、解約するまで自動更新",
+            .ko: "%@ / 년, 취소할 때까지 자동 갱신"
+        ],
+        "%d 天免费试用，之后 %@ / 年自动续订": [
+            .en: "%d-day free trial, then %@ / year auto-renewing",
+            .ja: "%d 日間無料、その後 %@ / 年で自動更新",
+            .ko: "%d일 무료 체험 후 %@ / 년 자동 갱신"
+        ],
+        "%@ 一次性购买，不自动续订": [
+            .en: "%@ one-time purchase, no auto-renewal",
+            .ja: "%@ の一回購入、自動更新なし",
+            .ko: "%@ 1회 구매, 자동 갱신 없음"
         ],
 
         // 已经购买 / 兑换码 / 管理订阅
         "已经购买?": [.en: "Already Purchased?", .ja: "購入済み?", .ko: "이미 구매했나요?"],
-        "使用兑换码": [.en: "Redeem Code", .ja: "コードを使う", .ko: "코드 사용"],
         "管理订阅": [.en: "Manage Subscriptions", .ja: "サブスク管理", .ko: "구독 관리"],
         "已恢复 Pro 权益": [.en: "Pro restored", .ja: "Pro を復元しました", .ko: "Pro 복원됨"],
         "未找到可恢复的购买记录": [.en: "No purchases to restore", .ja: "復元可能な購入はありません", .ko: "복원할 구매 내역 없음"],
@@ -382,6 +401,7 @@ enum L10n {
         "账户": [.en: "Account", .ja: "アカウント", .ko: "계정"],
         "隐私政策": [.en: "Privacy Policy", .ja: "プライバシーポリシー", .ko: "개인정보 처리방침"],
         "使用条款": [.en: "Terms of Use", .ja: "利用規約", .ko: "이용 약관"],
+        "使用条款 (EULA)": [.en: "Terms of Use (EULA)", .ja: "利用規約 (EULA)", .ko: "이용 약관 (EULA)"],
 
         // 免费版上限 toast
         "免费版单次仅加载前 %d 张": [.en: "Free tier loads only the first %d",

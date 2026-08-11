@@ -25,7 +25,6 @@ struct SettingsView: View {
     @State private var toast: ToastInfo?
     @State private var showPaywall = false
     @State private var paywallReason: PaywallReason = .upgrade
-    @State private var showRedeemSheet = false
 
     /// 上架前分享公开项目页，上架后可替换为 App Store 商品页
     private let appStoreURL = URL(string: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource")
@@ -86,10 +85,6 @@ struct SettingsView: View {
                                 Task { await performRestore() }
                             }
                             divider
-                            actionRow(label: lm.t("使用兑换码"), symbol: "gift.fill", tint: .pink) {
-                                showRedeemSheet = true
-                            }
-                            divider
                             linkRow(label: lm.t("管理订阅"), symbol: "creditcard.fill",
                                      url: "https://apps.apple.com/account/subscriptions")
                         }
@@ -100,7 +95,7 @@ struct SettingsView: View {
                             linkRow(label: lm.t("隐私政策"), symbol: "hand.raised.fill",
                                      url: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource#privacy")
                             divider
-                            linkRow(label: lm.t("使用条款"), symbol: "doc.text.fill",
+                            linkRow(label: lm.t("使用条款 (EULA)"), symbol: "doc.text.fill",
                                      url: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
                         }
 
@@ -115,7 +110,6 @@ struct SettingsView: View {
             .sheet(isPresented: $showPaywall) {
                 PaywallView(reason: paywallReason)
             }
-            .offerCodeRedemption(isPresented: $showRedeemSheet) { _ in }
             .preferredColorScheme(preferredSchemeForSheet)
             .navigationTitle(lm.t("设置"))
             .navigationBarTitleDisplayMode(.inline)

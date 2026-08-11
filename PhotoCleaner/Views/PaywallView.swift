@@ -1,6 +1,6 @@
 //
 //  PaywallView.swift
-//  订阅与买断付费墙：可信三档商品 + 免费试用 + 恢复购买 + App 兑换码
+//  订阅与买断付费墙：可信三档商品 + 免费试用 + 恢复购买
 //
 
 import SwiftUI
@@ -16,7 +16,6 @@ struct PaywallView: View {
     @EnvironmentObject private var themeManager: ThemeManager
 
     @State private var selectedID: String?
-    @State private var showRedeemSheet = false
     @State private var toast: ToastInfo?
     @State private var eligibleTrialProductIDs = Set<String>()
 
@@ -59,8 +58,6 @@ struct PaywallView: View {
                         ?? sortedProducts.first?.id
                 }
             }
-            // iOS 16+ App Store 兑换码内置 sheet
-            .offerCodeRedemption(isPresented: $showRedeemSheet) { _ in }
             .onChange(of: store.isPro) { _, newValue in
                 if newValue { dismissWithSuccess() }
             }
@@ -205,7 +202,7 @@ struct PaywallView: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 8) {
-                        Text(lm.t(pid?.titleKey ?? product.displayName))
+                        Text(product.displayName)
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(AppPalette.textPrimary(for: themeManager.current))
                         if isYearly {
@@ -216,15 +213,9 @@ struct PaywallView: View {
                                 .foregroundStyle(AppPalette.brand)
                         }
                     }
-                    Text(lm.t(pid?.periodKey ?? ""))
+                    Text(billingDisclosure(for: product, productID: pid))
                         .font(.system(size: 11))
                         .foregroundStyle(AppPalette.textSecondary(for: themeManager.current))
-                    if eligibleTrialProductIDs.contains(product.id),
-                       let days = product.freeTrialDays {
-                        Text(String(format: lm.t("含 %d 天免费试用"), days))
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(AppPalette.success)
-                    }
                 }
 
                 Spacer()
@@ -293,27 +284,17 @@ struct PaywallView: View {
         return lm.t("立即解锁")
     }
 
-    // MARK: - 恢复购买 + 兑换码 + 协议
+    // MARK: - 恢复购买 + 协议
 
     private var legalAndRestore: some View {
         VStack(spacing: 14) {
-            HStack(spacing: 18) {
-                Button(action: restorePurchases) {
-                    Text(lm.t("已经购买?"))
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(AppPalette.brand)
-                }
-                Text("·").foregroundStyle(AppPalette.textTertiary(for: themeManager.current))
-                Button {
-                    showRedeemSheet = true
-                } label: {
-                    Text(lm.t("使用兑换码"))
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(AppPalette.brand)
-                }
+            Button(action: restorePurchases) {
+                Text(lm.t("已经购买?"))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(AppPalette.brand)
             }
 
-            Text(lm.t("付款将在确认后从你的 Apple ID 账户中扣款；订阅会自动续订，可在 App Store 账户中随时取消。"))
+            Text(lm.t("付款将在确认后从 Apple ID 扣款；订阅会自动续订，并在当前周期结束前 24 小时内收费。你可以随时在 App Store 账户设置中取消。"))
                 .font(.system(size: 11))
                 .foregroundStyle(AppPalette.textTertiary(for: themeManager.current))
                 .multilineTextAlignment(.center)
@@ -324,7 +305,7 @@ struct PaywallView: View {
                      destination: URL(string: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource#privacy")
                         ?? URL(fileURLWithPath: "/"))
                 Text("·")
-                Link(lm.t("使用条款"),
+                Link(lm.t("使用条款 (EULA)"),
                      destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
                         ?? URL(fileURLWithPath: "/"))
             }
@@ -335,6 +316,23 @@ struct PaywallView: View {
 
     // MARK: - 行为
 
+    /// 生成与 App Store 商品一致的价格、周期、试用和续订说明
+    private func billingDisclosure(for product: Product, productID: StoreProductID?) -> String {
+        guard let productID else { return product.displayPrice }
+        switch productID {
+        case .monthly:
+            return String(format: lm.t("%@ / 月，自动续订直至取消"), product.displayPrice)
+        case .yearly:
+            if eligibleTrialProductIDs.contains(product.id), let days = product.freeTrialDays {
+                return String(format: lm.t("%d 天免费试用，之后 %@ / 年自动续订"), days, product.displayPrice)
+            }
+            return String(format: lm.t("%@ / 年，自动续订直至取消"), product.displayPrice)
+        case .lifetime:
+            return String(format: lm.t("%@ 一次性购买，不自动续订"), product.displayPrice)
+        }
+    }
+
+    /// 购买当前选中的 App Store 商品并展示失败反馈
     private func purchaseSelected() async {
         guard let pid = selectedID,
               let product = sortedProducts.first(where: { $0.id == pid }) else { return }
@@ -361,6 +359,7 @@ struct PaywallView: View {
         eligibleTrialProductIDs = eligible
     }
 
+    /// 恢复当前 Apple ID 下的有效权益并展示结果
     private func restorePurchases() {
         Task {
             let ok = await store.restore()
@@ -378,6 +377,7 @@ struct PaywallView: View {
         }
     }
 
+    /// 以成功触觉反馈关闭付费墙
     private func dismissWithSuccess() {
         AppHaptics.notify(.success)
         dismiss()
