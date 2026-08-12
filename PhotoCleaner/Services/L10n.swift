@@ -1,6 +1,6 @@
 //
 //  L10n.swift
-//  翻译字典：中文作 key，提供英 / 日 / 韩 翻译
+//  翻译字典：中文作 key，提供应用内多语言翻译
 //
 
 import Foundation
@@ -527,5 +527,131 @@ enum L10n {
             .ko: "캐러멜과 쿨은 멤버십 전용 테마입니다"
         ],
 
+    ]
+}
+
+/// 新增地区语言的核心界面翻译；未覆盖文案由 LanguageManager 回退到英语。
+enum L10nRegional {
+    static let dict: [AppLanguage: [String: String]] = [
+        .fr: [
+            "关闭": "Fermer", "取消": "Annuler", "确认": "Confirmer", "整理": "Trier",
+            "照片": "Photos", "相簿": "Albums", "更多": "Plus", "设置": "Réglages",
+            "外观": "Apparence", "主题": "Thème", "语言": "Langue", "跟随系统": "Système",
+            "浏览体验": "Expérience", "数据": "Données", "关于": "À propos", "版本": "Version",
+            "支持我们": "Nous soutenir", "给个好评": "Noter l’app", "分享给朋友": "Partager avec des amis",
+            "账户": "Compte", "已经购买?": "Déjà acheté ?", "管理订阅": "Gérer les abonnements",
+            "隐私政策": "Politique de confidentialité", "使用条款 (EULA)": "Conditions d’utilisation (EULA)",
+            "整理你的照片库，腾出存储空间": "Organisez vos photos et libérez de l’espace",
+            "用 RollKeep 整理你的照片库，腾出更多空间。": "Organisez vos photos avec RollKeep et libérez de l’espace.",
+            "升级会员": "Débloquer l’abonnement", "RollKeep 会员": "Abonnement RollKeep"
+        ],
+        .de: [
+            "关闭": "Schließen", "取消": "Abbrechen", "确认": "Bestätigen", "整理": "Sortieren",
+            "照片": "Fotos", "相簿": "Alben", "更多": "Mehr", "设置": "Einstellungen",
+            "外观": "Darstellung", "主题": "Design", "语言": "Sprache", "跟随系统": "System",
+            "浏览体验": "Nutzung", "数据": "Daten", "关于": "Über", "版本": "Version",
+            "支持我们": "Unterstützen", "给个好评": "App bewerten", "分享给朋友": "Mit Freunden teilen",
+            "账户": "Konto", "已经购买?": "Bereits gekauft?", "管理订阅": "Abos verwalten",
+            "隐私政策": "Datenschutz", "使用条款 (EULA)": "Nutzungsbedingungen (EULA)",
+            "整理你的照片库，腾出存储空间": "Fotomediathek ordnen und Speicher freigeben",
+            "用 RollKeep 整理你的照片库，腾出更多空间。": "Ordne deine Fotos mit RollKeep und schaffe mehr Platz.",
+            "升级会员": "Mitgliedschaft freischalten", "RollKeep 会员": "RollKeep-Mitgliedschaft"
+        ],
+        .it: [
+            "关闭": "Chiudi", "取消": "Annulla", "确认": "Conferma", "整理": "Organizza",
+            "照片": "Foto", "相簿": "Album", "更多": "Altro", "设置": "Impostazioni",
+            "外观": "Aspetto", "主题": "Tema", "语言": "Lingua", "跟随系统": "Sistema",
+            "浏览体验": "Esperienza", "数据": "Dati", "关于": "Informazioni", "版本": "Versione",
+            "支持我们": "Sostienici", "给个好评": "Valuta l’app", "分享给朋友": "Condividi con gli amici",
+            "账户": "Account", "已经购买?": "Già acquistato?", "管理订阅": "Gestisci abbonamenti",
+            "隐私政策": "Informativa sulla privacy", "使用条款 (EULA)": "Termini di utilizzo (EULA)",
+            "整理你的照片库，腾出存储空间": "Organizza le foto e libera spazio",
+            "用 RollKeep 整理你的照片库，腾出更多空间。": "Organizza le foto con RollKeep e libera spazio.",
+            "升级会员": "Sblocca abbonamento", "RollKeep 会员": "Abbonamento RollKeep"
+        ],
+        .es: [
+            "关闭": "Cerrar", "取消": "Cancelar", "确认": "Confirmar", "整理": "Organizar",
+            "照片": "Fotos", "相簿": "Álbumes", "更多": "Más", "设置": "Ajustes",
+            "外观": "Apariencia", "主题": "Tema", "语言": "Idioma", "跟随系统": "Sistema",
+            "浏览体验": "Experiencia", "数据": "Datos", "关于": "Acerca de", "版本": "Versión",
+            "支持我们": "Apóyanos", "给个好评": "Valorar la app", "分享给朋友": "Compartir con amigos",
+            "账户": "Cuenta", "已经购买?": "¿Ya lo compraste?", "管理订阅": "Gestionar suscripciones",
+            "隐私政策": "Política de privacidad", "使用条款 (EULA)": "Términos de uso (EULA)",
+            "整理你的照片库，腾出存储空间": "Organiza tus fotos y libera espacio",
+            "用 RollKeep 整理你的照片库，腾出更多空间。": "Organiza tus fotos con RollKeep y libera espacio.",
+            "升级会员": "Desbloquear membresía", "RollKeep 会员": "Membresía de RollKeep"
+        ],
+        .pt: [
+            "关闭": "Fechar", "取消": "Cancelar", "确认": "Confirmar", "整理": "Organizar",
+            "照片": "Fotos", "相簿": "Álbuns", "更多": "Mais", "设置": "Definições",
+            "外观": "Aparência", "主题": "Tema", "语言": "Idioma", "跟随系统": "Sistema",
+            "浏览体验": "Experiência", "数据": "Dados", "关于": "Sobre", "版本": "Versão",
+            "支持我们": "Apoie-nos", "给个好评": "Avaliar a app", "分享给朋友": "Partilhar com amigos",
+            "账户": "Conta", "已经购买?": "Já comprou?", "管理订阅": "Gerir assinaturas",
+            "隐私政策": "Política de privacidade", "使用条款 (EULA)": "Termos de utilização (EULA)",
+            "整理你的照片库，腾出存储空间": "Organize as fotos e liberte espaço",
+            "用 RollKeep 整理你的照片库，腾出更多空间。": "Organize as fotos com o RollKeep e liberte espaço.",
+            "升级会员": "Desbloquear assinatura", "RollKeep 会员": "Assinatura RollKeep"
+        ],
+        .nl: [
+            "关闭": "Sluiten", "取消": "Annuleren", "确认": "Bevestigen", "整理": "Ordenen",
+            "照片": "Foto’s", "相簿": "Albums", "更多": "Meer", "设置": "Instellingen",
+            "外观": "Weergave", "主题": "Thema", "语言": "Taal", "跟随系统": "Systeem",
+            "浏览体验": "Ervaring", "数据": "Gegevens", "关于": "Info", "版本": "Versie",
+            "支持我们": "Steun ons", "给个好评": "Beoordeel de app", "分享给朋友": "Delen met vrienden",
+            "账户": "Account", "已经购买?": "Al gekocht?", "管理订阅": "Abonnementen beheren",
+            "隐私政策": "Privacybeleid", "使用条款 (EULA)": "Gebruiksvoorwaarden (EULA)",
+            "整理你的照片库，腾出存储空间": "Orden je foto’s en maak ruimte vrij",
+            "用 RollKeep 整理你的照片库，腾出更多空间。": "Orden je foto’s met RollKeep en maak ruimte vrij.",
+            "升级会员": "Lidmaatschap ontgrendelen", "RollKeep 会员": "RollKeep-lidmaatschap"
+        ],
+        .pl: [
+            "关闭": "Zamknij", "取消": "Anuluj", "确认": "Potwierdź", "整理": "Porządkuj",
+            "照片": "Zdjęcia", "相簿": "Albumy", "更多": "Więcej", "设置": "Ustawienia",
+            "外观": "Wygląd", "主题": "Motyw", "语言": "Język", "跟随系统": "System",
+            "浏览体验": "Obsługa", "数据": "Dane", "关于": "Informacje", "版本": "Wersja",
+            "支持我们": "Wesprzyj nas", "给个好评": "Oceń aplikację", "分享给朋友": "Udostępnij znajomym",
+            "账户": "Konto", "已经购买?": "Już kupiono?", "管理订阅": "Zarządzaj subskrypcjami",
+            "隐私政策": "Polityka prywatności", "使用条款 (EULA)": "Warunki użytkowania (EULA)",
+            "整理你的照片库，腾出存储空间": "Uporządkuj zdjęcia i zwolnij miejsce",
+            "用 RollKeep 整理你的照片库，腾出更多空间。": "Uporządkuj zdjęcia z RollKeep i zwolnij miejsce.",
+            "升级会员": "Odblokuj członkostwo", "RollKeep 会员": "Członkostwo RollKeep"
+        ],
+        .ru: [
+            "关闭": "Закрыть", "取消": "Отмена", "确认": "Подтвердить", "整理": "Разобрать",
+            "照片": "Фото", "相簿": "Альбомы", "更多": "Ещё", "设置": "Настройки",
+            "外观": "Оформление", "主题": "Тема", "语言": "Язык", "跟随系统": "Системный",
+            "浏览体验": "Интерфейс", "数据": "Данные", "关于": "О приложении", "版本": "Версия",
+            "支持我们": "Поддержать", "给个好评": "Оценить приложение", "分享给朋友": "Поделиться с друзьями",
+            "账户": "Учётная запись", "已经购买?": "Уже купили?", "管理订阅": "Управление подписками",
+            "隐私政策": "Политика конфиденциальности", "使用条款 (EULA)": "Условия использования (EULA)",
+            "整理你的照片库，腾出存储空间": "Разберите фото и освободите место",
+            "用 RollKeep 整理你的照片库，腾出更多空间。": "Разберите фото с RollKeep и освободите место.",
+            "升级会员": "Открыть подписку", "RollKeep 会员": "Подписка RollKeep"
+        ],
+        .uk: [
+            "关闭": "Закрити", "取消": "Скасувати", "确认": "Підтвердити", "整理": "Упорядкувати",
+            "照片": "Фото", "相簿": "Альбоми", "更多": "Більше", "设置": "Налаштування",
+            "外观": "Вигляд", "主题": "Тема", "语言": "Мова", "跟随系统": "Системна",
+            "浏览体验": "Інтерфейс", "数据": "Дані", "关于": "Про програму", "版本": "Версія",
+            "支持我们": "Підтримати", "给个好评": "Оцінити програму", "分享给朋友": "Поділитися з друзями",
+            "账户": "Обліковий запис", "已经购买?": "Уже придбали?", "管理订阅": "Керувати підписками",
+            "隐私政策": "Політика конфіденційності", "使用条款 (EULA)": "Умови використання (EULA)",
+            "整理你的照片库，腾出存储空间": "Упорядкуйте фото та звільніть місце",
+            "用 RollKeep 整理你的照片库，腾出更多空间。": "Упорядкуйте фото з RollKeep і звільніть місце.",
+            "升级会员": "Відкрити підписку", "RollKeep 会员": "Підписка RollKeep"
+        ],
+        .ar: [
+            "关闭": "إغلاق", "取消": "إلغاء", "确认": "تأكيد", "整理": "تنظيم",
+            "照片": "الصور", "相簿": "الألبومات", "更多": "المزيد", "设置": "الإعدادات",
+            "外观": "المظهر", "主题": "السمة", "语言": "اللغة", "跟随系统": "النظام",
+            "浏览体验": "التجربة", "数据": "البيانات", "关于": "حول", "版本": "الإصدار",
+            "支持我们": "ادعمنا", "给个好评": "قيّم التطبيق", "分享给朋友": "مشاركة مع الأصدقاء",
+            "账户": "الحساب", "已经购买?": "اشتريت بالفعل؟", "管理订阅": "إدارة الاشتراكات",
+            "隐私政策": "سياسة الخصوصية", "使用条款 (EULA)": "شروط الاستخدام (EULA)",
+            "整理你的照片库，腾出存储空间": "نظّم صورك ووفّر مساحة",
+            "用 RollKeep 整理你的照片库，腾出更多空间。": "نظّم صورك باستخدام RollKeep ووفّر مساحة.",
+            "升级会员": "فتح العضوية", "RollKeep 会员": "عضوية RollKeep"
+        ]
     ]
 }

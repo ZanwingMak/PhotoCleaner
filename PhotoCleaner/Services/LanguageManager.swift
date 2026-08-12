@@ -1,12 +1,12 @@
 //
 //  LanguageManager.swift
-//  应用内多语言：中 / 英 / 日 / 韩 / 跟随系统
+//  应用内多语言与系统语言解析
 //
 
 import SwiftUI
 
 enum AppLanguage: String, CaseIterable, Identifiable {
-    case system, zh, en, ja, ko
+    case system, zh, en, ja, ko, fr, de, it, es, pt, nl, pl, ru, uk, ar
 
     var id: String { rawValue }
 
@@ -17,6 +17,16 @@ enum AppLanguage: String, CaseIterable, Identifiable {
         case .en:     return "English"
         case .ja:     return "日本語"
         case .ko:     return "한국어"
+        case .fr:     return "Français"
+        case .de:     return "Deutsch"
+        case .it:     return "Italiano"
+        case .es:     return "Español"
+        case .pt:     return "Português"
+        case .nl:     return "Nederlands"
+        case .pl:     return "Polski"
+        case .ru:     return "Русский"
+        case .uk:     return "Українська"
+        case .ar:     return "العربية"
         }
     }
 
@@ -27,6 +37,7 @@ enum AppLanguage: String, CaseIterable, Identifiable {
         case .en:     return "a.circle"
         case .ja:     return "j.circle"
         case .ko:     return "k.circle"
+        case .fr, .de, .it, .es, .pt, .nl, .pl, .ru, .uk, .ar: return "character.bubble"
         }
     }
 
@@ -38,8 +49,20 @@ enum AppLanguage: String, CaseIterable, Identifiable {
         case .en:     return "en"
         case .ja:     return "ja"
         case .ko:     return "ko"
+        case .fr:     return "fr"
+        case .de:     return "de"
+        case .it:     return "it"
+        case .es:     return "es"
+        case .pt:     return "pt"
+        case .nl:     return "nl"
+        case .pl:     return "pl"
+        case .ru:     return "ru"
+        case .uk:     return "uk"
+        case .ar:     return "ar"
         }
     }
+
+    var isRightToLeft: Bool { self == .ar }
 }
 
 @MainActor
@@ -79,6 +102,16 @@ final class LanguageManager: ObservableObject {
         if normalized.hasPrefix("ja") { return .ja }
         if normalized.hasPrefix("ko") { return .ko }
         if normalized.hasPrefix("en") { return .en }
+        if normalized.hasPrefix("fr") { return .fr }
+        if normalized.hasPrefix("de") { return .de }
+        if normalized.hasPrefix("it") { return .it }
+        if normalized.hasPrefix("es") { return .es }
+        if normalized.hasPrefix("pt") { return .pt }
+        if normalized.hasPrefix("nl") { return .nl }
+        if normalized.hasPrefix("pl") { return .pl }
+        if normalized.hasPrefix("ru") { return .ru }
+        if normalized.hasPrefix("uk") { return .uk }
+        if normalized.hasPrefix("ar") { return .ar }
         return nil
     }
 
@@ -87,8 +120,11 @@ final class LanguageManager: ObservableObject {
         objectWillChange.send()
     }
 
-    /// 翻译方法：根据当前语言取词；缺失则回退到 key 本身（中文）
+    /// 翻译方法：区域语言缺失时回退英语，避免出现中文混排
     func t(_ key: String) -> String {
-        L10n.dict[key]?[effective] ?? key
+        L10nRegional.dict[effective]?[key]
+            ?? L10n.dict[key]?[effective]
+            ?? L10n.dict[key]?[.en]
+            ?? key
     }
 }

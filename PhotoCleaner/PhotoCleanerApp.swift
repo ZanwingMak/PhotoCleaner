@@ -37,11 +37,14 @@ struct PhotoCleanerApp: App {
 /// 包装层：在 .preferredColorScheme 之前捕获系统真实 colorScheme，并通过自定义 environment key 注入下层
 private struct RootShell: View {
     @EnvironmentObject private var themeManager: ThemeManager
+    @EnvironmentObject private var languageManager: LanguageManager
     @Environment(\.colorScheme) private var systemScheme  // 此时还没经过任何 preferredColorScheme，是真实系统值
 
     var body: some View {
         RootView()
             .environment(\.systemColorScheme, systemScheme)
+            .environment(\.locale, Locale(identifier: languageManager.effective.localeIdentifier))
+            .environment(\.layoutDirection, languageManager.effective.isRightToLeft ? .rightToLeft : .leftToRight)
             .preferredColorScheme(themeManager.current.colorScheme)
     }
 }
