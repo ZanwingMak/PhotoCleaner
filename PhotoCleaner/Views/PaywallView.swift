@@ -302,11 +302,11 @@ struct PaywallView: View {
 
             HStack(spacing: 18) {
                 Link(lm.t("隐私政策"),
-                     destination: URL(string: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource#privacy")
+                     destination: URL(string: "https://zanwingmak.github.io/PhotoCleaner-OpenSource/privacy.html")
                         ?? URL(fileURLWithPath: "/"))
                 Text("·")
                 Link(lm.t("使用条款 (EULA)"),
-                     destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
+                     destination: URL(string: "https://zanwingmak.github.io/PhotoCleaner-OpenSource/terms.html")
                         ?? URL(fileURLWithPath: "/"))
             }
             .font(.caption.weight(.semibold))
