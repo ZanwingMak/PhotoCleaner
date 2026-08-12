@@ -16,6 +16,16 @@
           "description" : "Unlock the complete RollKeep experience forever.",
           "displayName" : "Lifetime",
           "locale" : "en_US"
+        },
+        {
+          "description" : "一度の購入で RollKeep の全機能を永久に利用できます。",
+          "displayName" : "Lifetime",
+          "locale" : "ja_JP"
+        },
+        {
+          "description" : "한 번 구매로 RollKeep의 모든 기능을 영구적으로 이용하세요.",
+          "displayName" : "Lifetime",
+          "locale" : "ko_KR"
         }
       ],
       "productID" : "app.rollkeep.RollKeep.lifetime",
@@ -52,6 +62,16 @@
               "description" : "Monthly",
               "displayName" : "Monthly",
               "locale" : "en_US"
+            },
+            {
+              "description" : "月ごとに更新される RollKeep メンバーシップ。",
+              "displayName" : "月額メンバーシップ",
+              "locale" : "ja_JP"
+            },
+            {
+              "description" : "매월 갱신되는 RollKeep 멤버십입니다.",
+              "displayName" : "월간 멤버십",
+              "locale" : "ko_KR"
             }
           ],
           "productID" : "app.rollkeep.RollKeep.sub.monthly",
@@ -82,6 +102,16 @@
               "description" : "Yearly",
               "displayName" : "Yearly",
               "locale" : "en_US"
+            },
+            {
+              "description" : "年ごとに更新される RollKeep メンバーシップ。",
+              "displayName" : "年間メンバーシップ",
+              "locale" : "ja_JP"
+            },
+            {
+              "description" : "매년 갱신되는 RollKeep 멤버십입니다.",
+              "displayName" : "연간 멤버십",
+              "locale" : "ko_KR"
             }
           ],
           "productID" : "app.rollkeep.RollKeep.sub.yearly",
