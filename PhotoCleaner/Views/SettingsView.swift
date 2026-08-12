@@ -26,8 +26,8 @@ struct SettingsView: View {
     @State private var showPaywall = false
     @State private var paywallReason: PaywallReason = .upgrade
 
-    /// 上架前分享公开项目页，上架后可替换为 App Store 商品页
-    private let appStoreURL = URL(string: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource")
+    /// 分享正式 App Store 商品页
+    private let appStoreURL = URL(string: "https://apps.apple.com/app/id6784522025")
         ?? URL(fileURLWithPath: "/")
 
     var body: some View {
@@ -93,10 +93,10 @@ struct SettingsView: View {
                             infoRow(label: lm.t("版本"), symbol: "info.circle", value: appVersion)
                             divider
                             linkRow(label: lm.t("隐私政策"), symbol: "hand.raised.fill",
-                                     url: "https://github.com/ZanwingMak/PhotoCleaner-OpenSource#privacy")
+                                     url: "https://zanwingmak.github.io/PhotoCleaner-OpenSource/privacy.html")
                             divider
                             linkRow(label: lm.t("使用条款 (EULA)"), symbol: "doc.text.fill",
-                                     url: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
+                                     url: "https://zanwingmak.github.io/PhotoCleaner-OpenSource/terms.html")
                         }
 
                         footerNote
