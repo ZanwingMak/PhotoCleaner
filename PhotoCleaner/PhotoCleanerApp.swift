@@ -39,13 +39,22 @@ private struct RootShell: View {
     @EnvironmentObject private var themeManager: ThemeManager
     @EnvironmentObject private var languageManager: LanguageManager
     @Environment(\.colorScheme) private var systemScheme  // 此时还没经过任何 preferredColorScheme，是真实系统值
+    @AppStorage("has_completed_tutorial_v1") private var hasCompletedTutorial = false
 
     var body: some View {
-        RootView()
-            .environment(\.systemColorScheme, systemScheme)
-            .environment(\.locale, Locale(identifier: languageManager.effective.localeIdentifier))
-            .environment(\.layoutDirection, languageManager.effective.isRightToLeft ? .rightToLeft : .leftToRight)
-            .preferredColorScheme(themeManager.current.colorScheme)
+        Group {
+            if hasCompletedTutorial {
+                RootView()
+                    .environment(\.systemColorScheme, systemScheme)
+            } else {
+                TutorialView {
+                    hasCompletedTutorial = true
+                }
+            }
+        }
+        .environment(\.locale, Locale(identifier: languageManager.effective.localeIdentifier))
+        .environment(\.layoutDirection, languageManager.effective.isRightToLeft ? .rightToLeft : .leftToRight)
+        .preferredColorScheme(themeManager.current.colorScheme)
     }
 }
 

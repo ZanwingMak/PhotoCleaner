@@ -24,6 +24,7 @@ struct SettingsView: View {
     @State private var isScanning = false
     @State private var toast: ToastInfo?
     @State private var showPaywall = false
+    @State private var showTutorial = false
     @State private var paywallReason: PaywallReason = .upgrade
 
     /// 分享正式 App Store 商品页
@@ -50,6 +51,10 @@ struct SettingsView: View {
                         }
 
                         section(lm.t("浏览体验")) {
+                            actionRow(label: lm.t("使用教程"), symbol: "questionmark.circle.fill", tint: .blue) {
+                                showTutorial = true
+                            }
+                            divider
                             toggleRow(label: lm.t("触觉反馈"), symbol: "iphone.gen2.radiowaves.left.and.right",
                                        binding: $hapticsEnabled)
                             divider
@@ -109,6 +114,11 @@ struct SettingsView: View {
             .toast($toast)
             .sheet(isPresented: $showPaywall) {
                 PaywallView(reason: paywallReason)
+            }
+            .fullScreenCover(isPresented: $showTutorial) {
+                TutorialView {
+                    showTutorial = false
+                }
             }
             .preferredColorScheme(preferredSchemeForSheet)
             .navigationTitle(lm.t("设置"))

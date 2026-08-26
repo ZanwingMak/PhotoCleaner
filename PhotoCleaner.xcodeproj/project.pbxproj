@@ -37,6 +37,7 @@
 		BF000000000000000000A01C /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01C /* PaywallView.swift */; };
 		BF000000000000000000A01D /* CleanupInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01D /* CleanupInsightsView.swift */; };
 		BF000000000000000000A01E /* AppHaptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01E /* AppHaptics.swift */; };
+		BF000000000000000000A01F /* TutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01F /* TutorialView.swift */; };
 		BF000000000000000000B001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000B001 /* Assets.xcassets */; };
 		BF000000000000000000B004 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000B004 /* PrivacyInfo.xcprivacy */; };
 		BF000000000000000000D001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = VG000000000000000000D001 /* InfoPlist.strings */; };
@@ -74,6 +75,7 @@
 		F0000000000000000000A01C /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		F0000000000000000000A01D /* CleanupInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupInsightsView.swift; sourceTree = "<group>"; };
 		F0000000000000000000A01E /* AppHaptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHaptics.swift; sourceTree = "<group>"; };
+		F0000000000000000000A01F /* TutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialView.swift; sourceTree = "<group>"; };
 		F0000000000000000000B003 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text.json.storekit; path = Products.storekit; sourceTree = "<group>"; };
 		F0000000000000000000B004 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F0000000000000000000B001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -183,6 +185,7 @@
 				F0000000000000000000A014 /* PhotoDetailView.swift */,
 				F0000000000000000000A01C /* PaywallView.swift */,
 				F0000000000000000000A01D /* CleanupInsightsView.swift */,
+				F0000000000000000000A01F /* TutorialView.swift */,
 				G000000000000000000000008 /* Components */,
 			);
 			path = Views;
@@ -341,6 +344,7 @@
 				BF000000000000000000A01C /* PaywallView.swift in Sources */,
 				BF000000000000000000A01D /* CleanupInsightsView.swift in Sources */,
 				BF000000000000000000A01E /* AppHaptics.swift in Sources */,
+				BF000000000000000000A01F /* TutorialView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -467,7 +471,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 2Q2LMV7BR6;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
@@ -496,7 +500,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 2Q2LMV7BR6;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
