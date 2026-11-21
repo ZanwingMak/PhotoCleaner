@@ -11,7 +11,7 @@ Free, open-source photo organization for iPhone, iPad, and iPhone Duo, built wit
 ![iOS](https://img.shields.io/badge/iOS-17%2B-black?logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-5-orange?logo=swift)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue)
-![Version](https://img.shields.io/badge/version-1.2.1-success)
+![Version](https://img.shields.io/badge/version-1.3.0-success)
 
 ## Features
 

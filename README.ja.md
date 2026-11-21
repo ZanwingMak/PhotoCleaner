@@ -11,7 +11,7 @@ iPhone、iPad、iPhone Duo 向けの無料オープンソース写真整理ア�
 ![iOS](https://img.shields.io/badge/iOS-17%2B-black?logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-5-orange?logo=swift)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue)
-![Version](https://img.shields.io/badge/version-1.2.1-success)
+![Version](https://img.shields.io/badge/version-1.3.0-success)
 
 ## 機能
 
