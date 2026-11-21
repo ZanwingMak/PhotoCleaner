@@ -30,7 +30,7 @@ final class UsageTracker: ObservableObject {
     @AppStorage("usage_last_day_key") private var lastDayKey: String = ""
     /// 持久化的当日计数
     @AppStorage("usage_today_count") private var storedCount: Int = 0
-    /// 最近 90 天整理统计的 JSON 数据
+    /// 按日期保存的轻量整理统计，不包含照片内容
     @AppStorage("cleanup_daily_stats_v1") private var statsData: Data = Data()
 
     /// 累计审核张数
@@ -54,6 +54,12 @@ final class UsageTracker: ObservableObject {
         migrateTodayCountIfNeeded()
     }
 
+    /// 回到应用时同步日期，确保跨午夜后的今日数字及时归零。
+    func refreshDay() {
+        rolloverIfNeeded()
+        todayReviewedCount = storedCount
+    }
+
     /// 记录一次审核，仅用于统计，不设每日额度。
     func recordReview() {
         rolloverIfNeeded()
@@ -67,6 +73,7 @@ final class UsageTracker: ObservableObject {
     /// 记录一次确认删除及实际释放空间
     func recordDeletion(count: Int, freedBytes: Int64) {
         guard count > 0 else { return }
+        rolloverIfNeeded()
         updateTodayStat { stat in
             stat.deletedCount += count
             stat.freedBytes += max(0, freedBytes)
@@ -130,14 +137,11 @@ final class UsageTracker: ObservableObject {
             dailyStats.append(stat)
         }
         dailyStats.sort { $0.dayKey < $1.dayKey }
-        if dailyStats.count > 90 {
-            dailyStats.removeFirst(dailyStats.count - 90)
-        }
         persistStats()
         objectWillChange.send()
     }
 
-    /// 把最近统计编码到 UserDefaults
+    /// 把每日汇总编码到 UserDefaults，累计值不因跨月或跨年减少
     private func persistStats() {
         guard let data = try? JSONEncoder().encode(dailyStats) else { return }
         statsData = data

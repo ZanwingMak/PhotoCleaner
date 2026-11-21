@@ -7,6 +7,25 @@ import Foundation
 
 enum L10n {
     static let dict: [String: [AppLanguage: String]] = [
+        "整理进度未能保存，请检查设备剩余空间。": [.en: "Progress could not be saved. Check your device storage.", .ja: "進捗を保存できませんでした。空き容量を確認してください。", .ko: "진행 상황을 저장하지 못했습니다. 기기의 여유 공간을 확인하세요."],
+        "开发者的其他 App": [.en: "More apps by the developer", .ja: "開発者のほかのアプリ", .ko: "개발자의 다른 앱"],
+        "发现更多": [.en: "Discover more", .ja: "もっと見つける", .ko: "더 알아보기"],
+        "更多独立开发的应用，欢迎看看。": [.en: "Explore more independently developed apps.", .ja: "個人開発のほかのアプリもご覧ください。", .ko: "독립 개발자가 만든 다른 앱도 만나 보세요."],
+        "查看开发者的所有 App": [.en: "View all apps by this developer", .ja: "開発者のすべてのアプリ", .ko: "개발자의 모든 앱 보기"],
+        "在 App Store 中查看": [.en: "View in the App Store", .ja: "App Store で見る", .ko: "App Store에서 보기"],
+        "连接自己的音乐库，随时聆听。": [.en: "Connect your own music library and listen anywhere.", .ja: "自分の音楽ライブラリをつなぎ、いつでも聴く。", .ko: "나만의 음악 라이브러리를 연결하고 감상하세요."],
+        "本地优先的音乐播放器。": [.en: "A local-first music player.", .ja: "ローカルファーストの音楽プレーヤー。", .ko: "로컬 우선 음악 플레이어."],
+        "连接自己的媒体库，继续观看。": [.en: "Connect your own media library and keep watching.", .ja: "自分のメディアライブラリをつないで視聴を続ける。", .ko: "나만의 미디어 라이브러리를 연결하고 감상하세요."],
+        "在大屏幕上享受自然声音与画面。": [.en: "Nature sounds and visuals for your big screen.", .ja: "大画面で自然の音と映像を楽しむ。", .ko: "큰 화면에서 자연의 소리와 영상을 즐기세요."],
+        "删除未完成": [.en: "Deletion was not completed", .ja: "削除が完了していません", .ko: "삭제가 완료되지 않았습니다"],
+        "删除未完成，请检查照片权限后重试。": [.en: "Deletion failed. Check Photos access and try again.", .ja: "削除できませんでした。写真へのアクセスを確認して再試行してください。", .ko: "삭제하지 못했습니다. 사진 접근 권한을 확인한 후 다시 시도하세요."],
+        "无法准备分享文件，请稍后重试。": [.en: "The sharing file could not be prepared. Please try again.", .ja: "共有用ファイルを準備できませんでした。再試行してください。", .ko: "공유할 파일을 준비하지 못했습니다. 다시 시도하세요."],
+        "正在准备分享…": [.en: "Preparing to share…", .ja: "共有の準備中…", .ko: "공유 준비 중…"],
+        "分享未完成": [.en: "Sharing was not completed", .ja: "共有が完了していません", .ko: "공유가 완료되지 않았습니다"],
+        "无法加载媒体，请检查网络后重试。": [.en: "Media could not be loaded. Check your connection and try again.", .ja: "メディアを読み込めませんでした。接続を確認して再試行してください。", .ko: "미디어를 불러오지 못했습니다. 네트워크를 확인한 후 다시 시도하세요."],
+        "正在准备视频…": [.en: "Preparing video…", .ja: "動画の準備中…", .ko: "동영상 준비 중…"],
+        "从头整理": [.en: "Start over", .ja: "最初から整理", .ko: "처음부터 정리"],
+        "预览": [.en: "Preview", .ja: "プレビュー", .ko: "미리보기"],
         // 自愿赞助：未翻译的区域语言使用现有的英文回退。
         "全部功能免费，无使用额度限制。自愿赞助不解锁功能，也不自动续费。": [.en: "All features are free, without usage limits. Optional support does not unlock features or renew automatically.", .ja: "全機能が無料で利用制限はありません。任意の支援で機能が変わることや自動更新はありません。", .ko: "모든 기능이 무료이며 사용량 제한이 없습니다. 후원은 기능을 잠금 해제하거나 자동 갱신되지 않습니다."],
         "感谢赞助开发": [.en: "Thanks for supporting development", .ja: "開発へのご支援に感謝します", .ko: "개발 후원에 감사드립니다"],

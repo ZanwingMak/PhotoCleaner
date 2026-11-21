@@ -19,6 +19,8 @@ struct PendingDeletionView: View {
     @State private var hasInitialized = false
     @State private var showConfirm = false
     @State private var isDeleting = false
+    @State private var showDeleteError = false
+    @AppStorage("confirm_before_delete") private var confirmBeforeDelete = true
 
     // 按当前窗口宽度增减列数，每个缩略图仍保持正方形。
     private let columns = [GridItem(.adaptive(minimum: 96, maximum: 180), spacing: 8)]
@@ -72,6 +74,7 @@ struct PendingDeletionView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(lm.t("关闭")) { dismiss() }
                         .tint(AppPalette.brand)
+                        .disabled(isDeleting)
                 }
                 if !vm.pendingDeletion.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
@@ -95,6 +98,15 @@ struct PendingDeletionView: View {
             } message: {
                 Text(String(format: lm.t("将把 %d 张照片移入系统「最近删除」相册，30 天内可恢复。"),
                             selectedAssets.count))
+            }
+            .interactiveDismissDisabled(isDeleting)
+            .alert(lm.t("删除未完成"), isPresented: $showDeleteError) {
+                Button(lm.t("确认"), role: .cancel) { }
+            } message: {
+                Text(lm.t(library.deletionError ?? "删除未完成，请检查照片权限后重试。"))
+            }
+            .onChange(of: vm.pendingDeletion.map(\.localIdentifier)) { _, ids in
+                selectedIds.formIntersection(Set(ids))
             }
             .onAppear {
                 if !hasInitialized {
@@ -165,7 +177,8 @@ struct PendingDeletionView: View {
             Spacer()
 
             Button {
-                showConfirm = true
+                if confirmBeforeDelete { showConfirm = true }
+                else { Task { await performDelete() } }
             } label: {
                 HStack(spacing: 8) {
                     if isDeleting {
@@ -224,13 +237,13 @@ struct PendingDeletionView: View {
         if success {
             usage.recordDeletion(count: toDelete.count, freedBytes: freedBytes)
             let deletedIds = Set(toDelete.map { $0.localIdentifier })
-            vm.pendingDeletion.removeAll { deletedIds.contains($0.localIdentifier) }
-            vm.assets.removeAll { deletedIds.contains($0.localIdentifier) }
-            vm.deleteHistory.removeAll { deletedIds.contains($0.asset.localIdentifier) }
-            vm.currentIndex = min(vm.currentIndex, max(0, vm.assets.count - 1))
+            vm.removeDeleted(deletedIds)
             selectedIds.removeAll()
             await library.refreshCategoryCounts()
+            await vm.saveDraft()
             dismiss()
+        } else if library.deletionError != nil {
+            showDeleteError = true
         }
     }
 }

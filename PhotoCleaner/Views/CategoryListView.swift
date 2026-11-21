@@ -281,6 +281,8 @@ struct CategoryListView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .keyboardShortcut(",", modifiers: .command)
+            .accessibilityLabel(lm.t("设置"))
         }
     }
 

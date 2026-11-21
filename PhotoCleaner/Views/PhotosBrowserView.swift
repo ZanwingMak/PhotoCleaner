@@ -38,7 +38,7 @@ struct PhotosBrowserView: View {
     @EnvironmentObject private var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
 
-    @State private var allAssets: [PHAsset] = []
+    @State private var filteredAssets: [PHAsset] = []
     @State private var hasLoaded = false
     @State private var filter: PhotosFilter = .all
     @State private var previewAsset: PHAsset?
@@ -46,13 +46,13 @@ struct PhotosBrowserView: View {
 
     private let columns = [GridItem(.adaptive(minimum: 100, maximum: 180), spacing: 2)]
 
-    /// 当前筛选后的资产
-    private var filteredAssets: [PHAsset] {
+    /// 直接查询对应系统相册，避免每次界面刷新都遍历整库筛选。
+    private var selectedCategory: PhotoCategory {
         switch filter {
-        case .all:        return allAssets
-        case .favorite:   return allAssets.filter { $0.isFavorite }
-        case .video:      return allAssets.filter { $0.mediaType == .video }
-        case .screenshot: return allAssets.filter { $0.mediaSubtypes.contains(.photoScreenshot) }
+        case .all: return .allPhotos
+        case .favorite: return .smartAlbum(.smartAlbumFavorites, title: "收藏", symbol: "heart", tint: .pink)
+        case .video: return .smartAlbum(.smartAlbumVideos, title: "视频", symbol: "video", tint: .blue)
+        case .screenshot: return .inferred(.screenshot)
         }
     }
 
@@ -80,10 +80,14 @@ struct PhotosBrowserView: View {
                             LazyVGrid(columns: columns, spacing: 2) {
                                 ForEach(filteredAssets, id: \.localIdentifier) { asset in
                                     PhotoGridThumb(asset: asset)
+                                        .id("\(asset.localIdentifier)-\(asset.modificationDate?.timeIntervalSince1970 ?? 0)")
                                         .onTapGesture {
                                             AppHaptics.impact(.light)
                                             previewAsset = asset
                                         }
+                                        .accessibilityLabel("\(lm.t(asset.mediaType == .video ? "视频" : "照片")) \(asset.creationDate?.formatted(date: .abbreviated, time: .omitted) ?? "")")
+                                        .accessibilityAddTraits(.isButton)
+                                        .accessibilityAction { previewAsset = asset }
                                         .contextMenu {
                                             assetMenu(for: asset)
                                         }
@@ -99,6 +103,15 @@ struct PhotosBrowserView: View {
             .navigationTitle("\(lm.t("照片")) · \(filteredAssets.count)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        previewAsset = filteredAssets.first
+                    } label: {
+                        Label(lm.t("预览"), systemImage: "play.rectangle")
+                    }
+                    .disabled(filteredAssets.isEmpty)
+                    .keyboardShortcut("o", modifiers: .command)
+                }
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
                         dismiss()
@@ -107,11 +120,15 @@ struct PhotosBrowserView: View {
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(AppPalette.textPrimary)
                     }
+                    .keyboardShortcut(.cancelAction)
+                    .accessibilityLabel(lm.t("关闭"))
                 }
             }
-            .task {
-                let fetched = library.fetchAssets(for: .allPhotos)
-                allAssets = fetched
+            .task(id: "\(library.revision)-\(filter.rawValue)") {
+                hasLoaded = false
+                let fetched = await library.assets(for: selectedCategory)
+                guard !Task.isCancelled else { return }
+                filteredAssets = fetched
                 hasLoaded = true
             }
             .fullScreenCover(item: Binding(

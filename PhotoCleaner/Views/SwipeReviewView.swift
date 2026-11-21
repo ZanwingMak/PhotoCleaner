@@ -138,6 +138,7 @@ struct SwipeReviewView: View {
     @EnvironmentObject private var usage: UsageTracker
     @StateObject private var vm: SwipeReviewViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var dragOffset: CGSize = .zero
     @State private var isAnimating = false
@@ -145,8 +146,10 @@ struct SwipeReviewView: View {
     @State private var showPendingSheet = false
     @State private var toast: ToastInfo?
     @State private var hasLoaded = false
+    @State private var loadGeneration = UUID()
     @State private var showCategoryPicker = false
     @State private var showMetadata = false
+    @State private var previewAsset: PHAssetWrapper?
     @State private var currentCategory: PhotoCategory
     @State private var sortOption: ReviewSortOption = .newest
 
@@ -235,6 +238,9 @@ struct SwipeReviewView: View {
         .sheet(isPresented: $showPendingSheet) {
             PendingDeletionView(vm: vm)
         }
+        .fullScreenCover(item: $previewAsset) { item in
+            PhotoDetailView(assets: [item.asset], startAsset: item.asset)
+        }
         .sheet(isPresented: $showMetadata) {
             if let asset = vm.currentAsset {
                 PhotoMetadataSheet(asset: asset)
@@ -271,8 +277,7 @@ struct SwipeReviewView: View {
                 },
                 DialogAction(title: lm.t("放弃并退出"), role: .destructive) {
                     let action = pendingExitConfirm
-                    vm.pendingDeletion.removeAll()
-                    vm.deleteHistory.removeAll()
+                    vm.discardPending()
                     pendingExitConfirm = nil
                     switch action {
                     case .dismiss?:
@@ -287,41 +292,64 @@ struct SwipeReviewView: View {
                 }
             ]
         )
-        .task {
-            await loadAssets(for: currentCategory)
+        .task { await loadAssets(for: currentCategory) }
+        .onChange(of: vm.draftSaveFailed) { _, failed in
+            if failed {
+                toast = ToastInfo(symbol: "exclamationmark.triangle", text: lm.t("整理进度未能保存，请检查设备剩余空间。"), tint: .orange)
+            }
         }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { Task { await vm.saveDraft() } }
+        }
+        .onChange(of: vm.pendingDeletion.map(\.localIdentifier)) { _, _ in vm.scheduleSave() }
+        .onChange(of: library.revision) { _, _ in
+            Task {
+                let categoryID = currentCategory.id
+                let identifiers = vm.assets.map(\.localIdentifier)
+                let revision = library.revision
+                let updated = await library.refreshedAssets(identifiers)
+                guard !Task.isCancelled, currentCategory.id == categoryID,
+                      library.revision == revision, vm.assets.map(\.localIdentifier) == identifiers else { return }
+                vm.reconcile(with: updated)
+            }
+        }
+        .onDisappear { Task { await vm.saveDraft() } }
     }
 
-    /// 切换分类：清空 VM 状态，重新加载
+    /// 保存当前草稿后切换分类，避免最后一次滑动还未落盘就丢失。
     private func switchCategory(to newCategory: PhotoCategory) {
         currentCategory = newCategory
         hasLoaded = false
-        vm.reset(with: [])
         showCategoryPicker = false
-        Task { await loadAssets(for: newCategory) }
-    }
-
-    /// 按当前排序加载完整分类队列。
-    private func loadAssets(for cat: PhotoCategory) async {
-        let allAssets = library.fetchAssets(for: cat)
-        let orderedAssets = sortAssets(allAssets, by: sortOption)
-        vm.reset(with: orderedAssets)
-        hasLoaded = true
-    }
-
-    /// 根据选择对审核队列排序；空间优先使用资产实际资源大小
-    private func sortAssets(_ assets: [PHAsset], by option: ReviewSortOption) -> [PHAsset] {
-        switch option {
-        case .newest:
-            return assets.sorted { ($0.creationDate ?? .distantPast) > ($1.creationDate ?? .distantPast) }
-        case .oldest:
-            return assets.sorted { ($0.creationDate ?? .distantFuture) < ($1.creationDate ?? .distantFuture) }
-        case .largest:
-            let sizedAssets = assets.map { asset in
-                (asset: asset, bytes: PhotoClassifier.estimatedSize(of: asset))
-            }
-            return sizedAssets.sorted { $0.bytes > $1.bytes }.map(\.asset)
+        Task {
+            await vm.saveDraft()
+            guard currentCategory.id == newCategory.id else { return }
+            await loadAssets(for: newCategory)
         }
+    }
+
+    /// 后台加载分类和排序；再次进入同一分类时恢复本机草稿。
+    private func loadAssets(for cat: PhotoCategory, restoring: Bool = true) async {
+        let generation = UUID()
+        loadGeneration = generation
+        let draft = restoring ? await ReviewDraftStore.shared.load(cat.id) : nil
+        guard loadGeneration == generation else { return }
+        if let raw = draft?.sort, let savedSort = ReviewSortOption(rawValue: raw) { sortOption = savedSort }
+        var loaded: [PHAsset]
+        if let ids = draft?.randomIDs {
+            loaded = await library.refreshedAssets(ids)
+        } else {
+            loaded = await library.assets(for: cat, sort: sortOption.rawValue)
+        }
+        if let draft, !draft.pendingIDs.isEmpty {
+            let ids = Set(loaded.map(\.localIdentifier))
+            let extra = await library.refreshedAssets(draft.pendingIDs.filter { !ids.contains($0) })
+            loaded.append(contentsOf: extra)
+        }
+        guard !Task.isCancelled, loadGeneration == generation, cat.id == currentCategory.id else { return }
+        vm.reset(with: loaded)
+        vm.restore(draft, categoryID: cat.id, sort: sortOption.rawValue)
+        hasLoaded = true
     }
 
     /// 应用新的排序方式；存在未处理删除项时保持当前会话不变
@@ -334,7 +362,7 @@ struct SwipeReviewView: View {
         }
         sortOption = option
         hasLoaded = false
-        Task { await loadAssets(for: currentCategory) }
+        Task { await loadAssets(for: currentCategory, restoring: false) }
     }
 
     // MARK: - 顶部三件套
@@ -357,6 +385,8 @@ struct SwipeReviewView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .keyboardShortcut(.cancelAction)
+            .accessibilityLabel(lm.t("关闭"))
 
             Spacer()
 
@@ -398,6 +428,8 @@ struct SwipeReviewView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .keyboardShortcut("d", modifiers: .command)
+            .accessibilityLabel(lm.t("查看待删除列表"))
         }
     }
 
@@ -415,6 +447,9 @@ struct SwipeReviewView: View {
                     }
                 }
             }
+            Divider()
+            Button(lm.t("从头整理")) { selectSortOption(sortOption) }
+                .disabled(!vm.pendingDeletion.isEmpty)
         } label: {
             Image(systemName: "arrow.up.arrow.down")
                 .font(.system(size: 16, weight: .semibold))
@@ -705,10 +740,7 @@ struct SwipeReviewView: View {
         guard !isAnimating, vm.hasMore,
               action != .previous || vm.canGoPrevious else { return }
         isAnimating = true
-        // 只有做出保留/删除决定才计入审核，返回上一张不重复计数。
-        if action != .previous {
-            usage.recordReview()
-        }
+        let sourceID = vm.currentAsset?.localIdentifier
 
         AppHaptics.impact(action == .markDelete ? .heavy : .light)
 
@@ -729,9 +761,15 @@ struct SwipeReviewView: View {
 
         // 动画完成后静默切换数据 + reset dragOffset（无回弹动画）
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.36) {
+            guard vm.currentAsset?.localIdentifier == sourceID else {
+                dragOffset = .zero
+                isAnimating = false
+                return
+            }
             var t = Transaction()
             t.disablesAnimations = true
             withTransaction(t) {
+                if action != .previous, !vm.isCurrentReviewed { usage.recordReview() }
                 vm.handle(action)
                 dragOffset = .zero
                 isAnimating = false
@@ -826,8 +864,15 @@ struct SwipeReviewView: View {
 
             Spacer()
 
+            actionButton(symbol: "play.rectangle", title: lm.t("预览"), color: .white,
+                         disabled: vm.currentAsset == nil, shortcut: KeyboardShortcut(.space, modifiers: [])) {
+                if let asset = vm.currentAsset { previewAsset = PHAssetWrapper(asset: asset) }
+            }
+
+            Spacer()
+
             actionButton(symbol: "arrow.uturn.backward", title: lm.t("撤销"), color: .white,
-                         disabled: vm.deleteHistory.isEmpty) {
+                         disabled: vm.deleteHistory.isEmpty, shortcut: KeyboardShortcut("z", modifiers: .command)) {
                 AppHaptics.impact(.soft)
                 vm.undoLastDelete()
             }
@@ -835,14 +880,14 @@ struct SwipeReviewView: View {
             Spacer()
 
             actionButton(symbol: "arrow.down", title: lm.t("保留"), color: .white,
-                         disabled: !vm.hasMore) {
+                         disabled: !vm.hasMore, shortcut: KeyboardShortcut(.rightArrow, modifiers: [])) {
                 trigger(.next, direction: .left)
             }
 
             Spacer()
 
             actionButton(symbol: "xmark", title: lm.t("删除"), color: .red,
-                         disabled: !vm.hasMore) {
+                         disabled: !vm.hasMore, shortcut: KeyboardShortcut(.delete, modifiers: [])) {
                 trigger(.markDelete, direction: .up)
             }
         }
@@ -850,7 +895,8 @@ struct SwipeReviewView: View {
     }
 
     @ViewBuilder
-    private func actionButton(symbol: String, title: String, color: Color, disabled: Bool, action: @escaping () -> Void) -> some View {
+    /// 显示带名称的审核操作，并为外接键盘提供对应按键。
+    private func actionButton(symbol: String, title: String, color: Color, disabled: Bool, shortcut: KeyboardShortcut? = nil, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 4) {
                 ZStack {
@@ -870,6 +916,7 @@ struct SwipeReviewView: View {
         }
         .buttonStyle(.plain)
         .disabled(disabled || isAnimating)
+        .keyboardShortcut(shortcut)
     }
 
     // MARK: - 空状态

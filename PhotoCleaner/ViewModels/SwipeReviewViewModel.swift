@@ -23,10 +23,10 @@ struct SwipeRecord: Hashable {
 @MainActor
 final class SwipeReviewViewModel: ObservableObject {
 
-    @Published var assets: [PHAsset]
-    @Published var currentIndex: Int = 0
-    @Published var pendingDeletion: [PHAsset] = []
-    @Published var deleteHistory: [SwipeRecord] = []
+    @Published private(set) var assets: [PHAsset]
+    @Published private(set) var currentIndex: Int = 0
+    @Published private(set) var pendingDeletion: [PHAsset] = []
+    @Published private(set) var deleteHistory: [SwipeRecord] = []
     /// 当前会话加载的实际可见照片数
     @Published var sessionLoadedCount: Int = 0
     /// 当前会话原始可加载照片数
@@ -35,6 +35,75 @@ final class SwipeReviewViewModel: ObservableObject {
     @Published private(set) var sessionReviewedCount: Int = 0
 
     private var reviewedAssetIDs = Set<String>()
+    private var pendingAssetIDs = Set<String>()
+    @Published private(set) var draftSaveFailed = false
+    private var draftCategoryID: String?
+    private var draftSort = "newest"
+    private var saveTask: Task<Void, Never>?
+
+    /// 是否已记录当前照片，回看时不再重复累计整理统计。
+    var isCurrentReviewed: Bool {
+        currentAsset.map { reviewedAssetIDs.contains($0.localIdentifier) } ?? false
+    }
+
+    /// 恢复仍获授权的资产标识，并保留当前队列的导航位置。
+    func restore(_ draft: ReviewDraft?, categoryID: String, sort: String) {
+        draftCategoryID = categoryID
+        draftSort = sort
+        guard let draft else { return }
+        let available = Set(assets.map(\.localIdentifier))
+        reviewedAssetIDs = draft.reviewedIDs.intersection(available)
+        sessionReviewedCount = reviewedAssetIDs.count
+        let pending = Set(draft.pendingIDs)
+        pendingDeletion = assets.filter { pending.contains($0.localIdentifier) }
+        pendingAssetIDs = Set(pendingDeletion.map(\.localIdentifier))
+        if let id = draft.currentID, let index = assets.firstIndex(where: { $0.localIdentifier == id }) {
+            currentIndex = index
+        } else {
+            currentIndex = assets.firstIndex(where: { !reviewedAssetIDs.contains($0.localIdentifier) }) ?? assets.count
+        }
+    }
+
+    /// 合并外部图库变化，不把正在审核的位置跳回第一张。
+    func reconcile(with updated: [PHAsset]) {
+        let currentID = currentAsset?.localIdentifier
+        let completed = !hasMore
+        let available = Set(updated.map(\.localIdentifier))
+        let pending = Set(pendingDeletion.map(\.localIdentifier))
+        assets = updated
+        pendingDeletion = updated.filter { pending.contains($0.localIdentifier) }
+        pendingAssetIDs = Set(pendingDeletion.map(\.localIdentifier))
+        deleteHistory.removeAll { !available.contains($0.asset.localIdentifier) }
+        reviewedAssetIDs.formIntersection(available)
+        sessionReviewedCount = reviewedAssetIDs.count
+        sessionLoadedCount = updated.count
+        sessionTotalCount = updated.count
+        if let id = currentID, let index = updated.firstIndex(where: { $0.localIdentifier == id }) {
+            currentIndex = index
+        } else {
+            currentIndex = completed ? updated.count : min(currentIndex, updated.count)
+        }
+        scheduleSave()
+    }
+
+    /// 合并连续滑动的写入，在用户停顿后保存检查点。
+    func scheduleSave() {
+        saveTask?.cancel()
+        saveTask = Task { [weak self] in
+            do { try await Task.sleep(for: .milliseconds(400)) } catch { return }
+            await self?.saveDraft()
+        }
+    }
+
+    /// 在离开页面或退到后台时立即保存；照片内容不写入草稿。
+    func saveDraft() async {
+        guard let categoryID = draftCategoryID else { return }
+        let draft = ReviewDraft(currentID: currentAsset?.localIdentifier,
+                                pendingIDs: pendingDeletion.map(\.localIdentifier), reviewedIDs: reviewedAssetIDs,
+                                sort: draftSort, randomIDs: categoryID == "quick-random" ? assets.map(\.localIdentifier) : nil)
+        draftSaveFailed = !(await ReviewDraftStore.shared.save(draft, for: categoryID))
+    }
+
 
     /// 是否还有当前可显示的照片
     var hasMore: Bool { currentIndex < assets.count }
@@ -51,6 +120,7 @@ final class SwipeReviewViewModel: ObservableObject {
     /// 是否可向后翻页
     var canGoNext: Bool { currentIndex < assets.count - 1 }
 
+    /// 初始化一个空队列或现有审核会话。
     init(assets: [PHAsset]) {
         self.assets = assets
     }
@@ -58,6 +128,7 @@ final class SwipeReviewViewModel: ObservableObject {
     /// 处理一次滑动操作
     func handle(_ action: SwipeAction) {
         guard !assets.isEmpty else { return }
+        defer { scheduleSave() }
 
         switch action {
         case .previous:
@@ -73,7 +144,7 @@ final class SwipeReviewViewModel: ObservableObject {
             guard hasMore else { return }
             let asset = assets[currentIndex]
             markReviewed(asset)
-            if !pendingDeletion.contains(where: { $0.localIdentifier == asset.localIdentifier }) {
+            if pendingAssetIDs.insert(asset.localIdentifier).inserted {
                 deleteHistory.append(SwipeRecord(asset: asset, fromIndex: currentIndex))
                 pendingDeletion.append(asset)
             }
@@ -83,9 +154,12 @@ final class SwipeReviewViewModel: ObservableObject {
 
     /// 为新分类重置会话状态
     func reset(with newAssets: [PHAsset]) {
+        saveTask?.cancel()
+        draftCategoryID = nil
         assets = newAssets
         currentIndex = 0
         pendingDeletion = []
+        pendingAssetIDs.removeAll()
         deleteHistory = []
         reviewedAssetIDs.removeAll()
         sessionReviewedCount = 0
@@ -103,18 +177,24 @@ final class SwipeReviewViewModel: ObservableObject {
     /// 撤销最近一次 markDelete
     func undoLastDelete() {
         guard let last = deleteHistory.popLast() else { return }
-        currentIndex = last.fromIndex
+        currentIndex = assets.firstIndex(where: { $0.localIdentifier == last.asset.localIdentifier }) ?? min(last.fromIndex, assets.count)
+        scheduleSave()
         if let removeIdx = pendingDeletion.firstIndex(where: { $0.localIdentifier == last.asset.localIdentifier }) {
             pendingDeletion.remove(at: removeIdx)
+            pendingAssetIDs.remove(last.asset.localIdentifier)
         }
     }
 
-    /// 删除成功后清理状态
-    func clearAfterDelete() {
-        let deletedIds = Set(pendingDeletion.map { $0.localIdentifier })
+    /// 主动放弃当前选择时同步清空撤销历史和查重集合。
+    func discardPending() {
         pendingDeletion.removeAll()
+        pendingAssetIDs.removeAll()
         deleteHistory.removeAll()
-        assets.removeAll { deletedIds.contains($0.localIdentifier) }
-        currentIndex = min(currentIndex, max(assets.count - 1, 0))
+        scheduleSave()
+    }
+
+    /// 删除成功后同步队列，保持仍存在的当前照片位置。
+    func removeDeleted(_ identifiers: Set<String>) {
+        reconcile(with: assets.filter { !identifiers.contains($0.localIdentifier) })
     }
 }

@@ -82,6 +82,23 @@ struct SettingsView: View {
                             shareRow
                         }
 
+                        section(lm.t("发现更多")) {
+                            NavigationLink {
+                                MoreAppsView()
+                            } label: {
+                                HStack(spacing: 14) {
+                                    iconBubble("square.grid.2x2.fill", tint: AppPalette.brand)
+                                    Text(lm.t("开发者的其他 App")).foregroundStyle(.primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(.secondary)
+                                }
+                                .padding(14)
+                                .frame(minHeight: 52)
+                            }
+                            .buttonStyle(.plain)
+                            .keyboardShortcut("m", modifiers: [.command, .shift])
+                        }
+
                         section(lm.t("关于")) {
                             infoRow(label: lm.t("版本"), symbol: "info.circle", value: appVersion)
                             if updateChecker.hasUpdate, let releaseURL = updateChecker.releaseURL {
@@ -131,6 +148,7 @@ struct SettingsView: View {
                         dismiss()
                     }
                     .tint(AppPalette.brand)
+                    .keyboardShortcut(.cancelAction)
                 }
             }
         }

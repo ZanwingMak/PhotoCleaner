@@ -19,7 +19,7 @@ struct PhotoMetadataSheet: View {
     @State private var resources: [PHAssetResource] = []
     @State private var totalSize: Int64 = 0
     @State private var fileName: String = "—"
-    @State private var showShareSheet = false
+    @StateObject private var shareStore = AssetShareStore()
 
     var body: some View {
         NavigationStack {
@@ -40,8 +40,15 @@ struct PhotoMetadataSheet: View {
                 }
             }
             .preferredColorScheme(themeManager.current.colorScheme)
-            .sheet(isPresented: $showShareSheet) {
-                if let image { PhotoShareSheet(image: image) }
+            .sheet(item: $shareStore.item, onDismiss: { shareStore.cleanup() }) { item in
+                PhotoShareSheet(items: [item.url])
+            }
+            .alert(lm.t("分享未完成"), isPresented: Binding(get: { shareStore.error != nil }, set: { if !$0 { shareStore.error = nil } })) {
+                Button(lm.t("确认"), role: .cancel) { shareStore.error = nil }
+            } message: { Text(lm.t(shareStore.error ?? "")) }
+            .onDisappear {
+                if let reqID { library.cancelImageRequest(reqID) }
+                shareStore.cleanup()
             }
             .navigationTitle(lm.t("照片详情"))
             .navigationBarTitleDisplayMode(.inline)
@@ -162,6 +169,12 @@ struct PhotoMetadataSheet: View {
                                    usesCardBackground: true)
             }
             .buttonStyle(.plain)
+            .disabled(shareStore.isLoading)
+            if shareStore.isLoading {
+                ProgressView(lm.t("正在准备分享…"))
+                if shareStore.progress > 0 { ProgressView(value: shareStore.progress) }
+                Button(lm.t("取消")) { shareStore.cleanup() }
+            }
         }
     }
 
@@ -255,7 +268,6 @@ struct PhotoMetadataSheet: View {
     /// 从当前详情页呈现系统分享面板，适配 iPad 与 Duo 的窗口尺寸。
     private func share() {
         AppHaptics.impact(.light)
-        guard image != nil else { return }
-        showShareSheet = true
+        shareStore.prepare(asset)
     }
 }

@@ -23,7 +23,7 @@ private struct PhotoLibrarySnapshot: Sendable {
 }
 
 @MainActor
-final class PhotoLibraryService: ObservableObject {
+final class PhotoLibraryService: NSObject, ObservableObject, PHPhotoLibraryChangeObserver {
 
     @Published var authorizationStatus: PHAuthorizationStatus = .notDetermined
     @Published var isLoading: Bool = false
@@ -33,22 +33,75 @@ final class PhotoLibraryService: ObservableObject {
     /// 按月份分桶
     @Published var monthBuckets: [MonthBucket] = []
 
+    @Published private(set) var revision = 0
+    @Published private(set) var deletionError: String?
+    private var isObserving = false
+    private var refreshRequested = false
+    private var refreshTask: Task<Void, Never>?
     private let imageManager = PHCachingImageManager()
 
-    init() {
+    /// 初始化图片缓存，仅在有照片权限时监听图库变化。
+    override init() {
+        super.init()
         self.authorizationStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         self.imageManager.allowsCachingHighQualityImages = false
+        updateObservation()
+    }
+
+    /// 注销图库监听并取消合并中的刷新。
+    deinit {
+        refreshTask?.cancel()
+        PHPhotoLibrary.shared().unregisterChangeObserver(self)
+    }
+
+    /// Photos 回调可能来自后台队列，界面和缓存更新统一回主线程。
+    nonisolated func photoLibraryDidChange(_ changeInstance: PHChange) {
+        Task { @MainActor [weak self] in self?.scheduleRefresh() }
+    }
+
+    /// 合并连续图库变化，立即通知列表更新，稍后刷新首页统计。
+    private func scheduleRefresh() {
+        ThumbnailCache.shared.removeAllObjects()
+        PhotoClassifier.clearSizeCache()
+        imageManager.stopCachingImagesForAllAssets()
+        revision += 1
+        refreshTask?.cancel()
+        refreshTask = Task { [weak self] in
+            do { try await Task.sleep(for: .milliseconds(400)) } catch { return }
+            guard let self else { return }
+            self.refreshAuthorizationStatus()
+            await self.refreshCategoryCounts()
+        }
+    }
+
+    /// 授权变化后注册或注销监听，并清除不再获准访问的内容。
+    private func updateObservation() {
+        if hasAccess, !isObserving {
+            PHPhotoLibrary.shared().register(self)
+            isObserving = true
+        } else if !hasAccess {
+            if isObserving { PHPhotoLibrary.shared().unregisterChangeObserver(self) }
+            isObserving = false
+            categoryCounts = [:]
+            monthBuckets = []
+            ThumbnailCache.shared.removeAllObjects()
+        }
     }
 
     /// 请求照片库授权并同步到页面状态
     func requestAuthorization() async {
         let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
         self.authorizationStatus = status
+        updateObservation()
     }
 
     /// 主动同步系统授权状态（用于 app 重新激活时刷新）
     func refreshAuthorizationStatus() {
-        self.authorizationStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        let changed = status != authorizationStatus
+        authorizationStatus = status
+        updateObservation()
+        if changed { revision += 1 }
     }
 
     /// 当前授权是否允许读取照片库
@@ -57,7 +110,7 @@ final class PhotoLibraryService: ObservableObject {
     }
 
     /// 取分类下所有资产
-    func fetchAssets(for category: PhotoCategory) -> [PHAsset] {
+    nonisolated static func fetchAssets(for category: PhotoCategory) -> [PHAsset] {
         let options = PHFetchOptions()
         options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
 
@@ -70,7 +123,7 @@ final class PhotoLibraryService: ObservableObject {
                 with: .smartAlbum, subtype: subtype, options: nil)
             var all: [PHAsset] = []
             collections.enumerateObjects { col, _, _ in
-                all.append(contentsOf: self.arrayFrom(PHAsset.fetchAssets(in: col, options: options)))
+                all.append(contentsOf: Self.arrayFrom(PHAsset.fetchAssets(in: col, options: options)))
             }
             return all
 
@@ -105,16 +158,43 @@ final class PhotoLibraryService: ObservableObject {
         }
     }
 
+    /// 后台查询及排序完整分类，主线程只接收结果并更新界面。
+    func assets(for category: PhotoCategory, sort: String = "newest") async -> [PHAsset] {
+        guard hasAccess else { return [] }
+        return await Task.detached(priority: .userInitiated) {
+            let assets = Self.fetchAssets(for: category)
+            if sort == "oldest" { return Array(assets.reversed()) }
+            if sort == "largest" {
+                let sizes = assets.map { ($0, PhotoClassifier.estimatedSize(of: $0)) }
+                return sizes.sorted { $0.1 == $1.1 ? $0.0.localIdentifier < $1.0.localIdentifier : $0.1 > $1.1 }.map(\.0)
+            }
+            return assets
+        }.value
+    }
+
+    /// 后台重取现有审核队列，保留原顺序并移除失去权限或已删除的资产。
+    func refreshedAssets(_ identifiers: [String]) async -> [PHAsset] {
+        guard hasAccess else { return [] }
+        return await Task.detached(priority: .userInitiated) {
+            let result = PHAsset.fetchAssets(withLocalIdentifiers: identifiers, options: nil)
+            let lookup = Dictionary(uniqueKeysWithValues: Self.arrayFrom(result).map { ($0.localIdentifier, $0) })
+            return identifiers.compactMap { lookup[$0] }
+        }.value
+    }
+
     /// 刷新分类计数 + 月份分桶
     func refreshCategoryCounts() async {
-        guard hasAccess, !isLoading else { return }
-
+        guard hasAccess else { return }
+        if isLoading { refreshRequested = true; return }
         isLoading = true
         defer { isLoading = false }
-
-        let snapshot = await Self.buildCategorySnapshot()
-        self.categoryCounts = snapshot.categoryCounts
-        self.monthBuckets = snapshot.monthBuckets
+        repeat {
+            refreshRequested = false
+            let snapshot = await Self.buildCategorySnapshot()
+            guard hasAccess else { return }
+            categoryCounts = snapshot.categoryCounts
+            monthBuckets = snapshot.monthBuckets
+        } while refreshRequested
     }
 
     /// 加载缩略图
@@ -124,21 +204,33 @@ final class PhotoLibraryService: ObservableObject {
         targetSize: CGSize,
         deliveryMode: PHImageRequestOptionsDeliveryMode = .opportunistic,
         isNetworkAccessAllowed: Bool = true,
+        progress: ((Double) -> Void)? = nil,
+        failure: (() -> Void)? = nil,
         completion: @escaping (UIImage?) -> Void
     ) -> PHImageRequestID {
         let options = PHImageRequestOptions()
-        options.deliveryMode = deliveryMode
+        options.deliveryMode = deliveryMode == .opportunistic && !(UserDefaults.standard.object(forKey: "thumbnail_hq") as? Bool ?? true)
+            ? .fastFormat : deliveryMode
         options.resizeMode = .fast
         options.isNetworkAccessAllowed = isNetworkAccessAllowed
         options.isSynchronous = false
+        options.progressHandler = { value, _, _, _ in
+            DispatchQueue.main.async { progress?(value) }
+        }
 
         return imageManager.requestImage(
             for: asset, targetSize: targetSize, contentMode: .aspectFit, options: options
-        ) { image, _ in
-            DispatchQueue.main.async { completion(image) }
+        ) { image, info in
+            guard (info?[PHImageCancelledKey] as? Bool) != true else { return }
+            let final = (info?[PHImageResultIsDegradedKey] as? Bool) != true
+            DispatchQueue.main.async {
+                if let image { completion(image) }
+                else if final { failure?() }
+            }
         }
     }
 
+    /// 取消离屏图片或实况照片请求，避免继续下载。
     func cancelImageRequest(_ id: PHImageRequestID) {
         imageManager.cancelImageRequest(id)
     }
@@ -164,14 +256,22 @@ final class PhotoLibraryService: ObservableObject {
 
     /// 批量删除（系统弹原生确认）
     func deleteAssets(_ assets: [PHAsset]) async -> Bool {
+        deletionError = nil
         guard !assets.isEmpty else { return true }
-        return await withCheckedContinuation { continuation in
+        let result: (Bool, Error?) = await withCheckedContinuation { continuation in
             PHPhotoLibrary.shared().performChanges {
                 PHAssetChangeRequest.deleteAssets(assets as NSArray)
-            } completionHandler: { success, _ in
-                continuation.resume(returning: success)
+            } completionHandler: { success, error in
+                continuation.resume(returning: (success, error))
             }
         }
+        if !result.0 {
+            let error = result.1 as NSError?
+            if error?.domain != PHPhotosErrorDomain || error?.code != PHPhotosError.Code.userCancelled.rawValue {
+                deletionError = "删除未完成，请检查照片权限后重试。"
+            }
+        }
+        return result.0
     }
 
     // MARK: - Helpers
@@ -279,7 +379,7 @@ final class PhotoLibraryService: ObservableObject {
     }
 
     /// 将 PHFetchResult 转成数组，仅用于确实需要完整列表的页面
-    private func arrayFrom(_ result: PHFetchResult<PHAsset>) -> [PHAsset] {
+    private nonisolated static func arrayFrom(_ result: PHFetchResult<PHAsset>) -> [PHAsset] {
         var arr: [PHAsset] = []
         arr.reserveCapacity(result.count)
         result.enumerateObjects { obj, _, _ in arr.append(obj) }
@@ -287,7 +387,7 @@ final class PhotoLibraryService: ObservableObject {
     }
 
     /// 单次枚举并只保留匹配资产，避免先构建全量数组再过滤
-    private func filteredAssets(
+    private nonisolated static func filteredAssets(
         from result: PHFetchResult<PHAsset>,
         where matches: @escaping (PHAsset) -> Bool
     ) -> [PHAsset] {
@@ -301,7 +401,7 @@ final class PhotoLibraryService: ObservableObject {
     }
 
     /// 对 PHFetchResult 做蓄水池抽样，避免随机分类全量 shuffle 占用大量内存
-    private func randomSample(from result: PHFetchResult<PHAsset>, limit: Int) -> [PHAsset] {
+    private nonisolated static func randomSample(from result: PHFetchResult<PHAsset>, limit: Int) -> [PHAsset] {
         guard limit > 0 else { return [] }
         var sample: [PHAsset] = []
         sample.reserveCapacity(min(result.count, limit))

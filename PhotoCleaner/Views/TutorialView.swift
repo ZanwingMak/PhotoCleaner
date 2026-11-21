@@ -86,6 +86,7 @@ struct TutorialView: View {
                 Button(lm.t("跳过")) {
                     onFinish()
                 }
+                .keyboardShortcut(.cancelAction)
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(AppPalette.textSecondary(for: themeManager.current))
                 .frame(minWidth: 44, minHeight: 44)

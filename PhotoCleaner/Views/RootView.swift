@@ -9,6 +9,7 @@ import Photos
 struct RootView: View {
     @EnvironmentObject private var library: PhotoLibraryService
     @Environment(\.scenePhase) private var scenePhase
+    @EnvironmentObject private var usage: UsageTracker
 
     var body: some View {
         Group {
@@ -30,6 +31,7 @@ struct RootView: View {
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
+                usage.refreshDay()
                 library.refreshAuthorizationStatus()
             }
         }
@@ -94,6 +96,7 @@ struct PermissionView: View {
                                 }
                                 .foregroundStyle(.white)
                         }
+                        .keyboardShortcut(.defaultAction)
                         .padding(.horizontal, 32)
                         .padding(.bottom, 32)
                     }

@@ -8,6 +8,11 @@ import Photos
 import UIKit
 
 enum PhotoClassifier {
+    private static let sizeCache = NSCache<NSString, NSNumber>()
+
+    /// 图库变更时清除尺寸缓存，避免编辑后的文件继续使用旧值。
+    static func clearSizeCache() { sizeCache.removeAllObjects() }
+
 
     /// 推断分类匹配
     static func matches(_ asset: PHAsset, kind: PhotoCategory.InferredKind) -> Bool {
@@ -79,6 +84,8 @@ enum PhotoClassifier {
 
     /// 估算资产文件大小（字节）
     static func estimatedSize(of asset: PHAsset) -> Int64 {
+        let key = "\(asset.localIdentifier)-\(asset.modificationDate?.timeIntervalSince1970 ?? 0)" as NSString
+        if let cached = sizeCache.object(forKey: key) { return cached.int64Value }
         let resources = PHAssetResource.assetResources(for: asset)
         var total: Int64 = 0
         for r in resources {
@@ -86,6 +93,8 @@ enum PhotoClassifier {
                 total += size
             }
         }
+        sizeCache.countLimit = 20_000
+        sizeCache.setObject(NSNumber(value: total), forKey: key)
         return total
     }
 

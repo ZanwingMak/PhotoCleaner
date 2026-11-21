@@ -112,6 +112,8 @@ struct FloatingTabBar: View {
             .animation(.spring(response: 0.35, dampingFraction: 0.7), value: isSelected)
         }
         .buttonStyle(.plain)
+        .keyboardShortcut(KeyEquivalent(Character(String((TabBarItem.allCases.firstIndex(of: item) ?? 0) + 1))), modifiers: .command)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     /// 选中态在彩色 brand 渐变上始终用白色；未选中用 .secondary 自动适配明暗
