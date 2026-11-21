@@ -11,6 +11,7 @@ struct PhotoCleanerApp: App {
     @StateObject private var themeManager = ThemeManager()
     @StateObject private var languageManager = LanguageManager()
     @StateObject private var usage = UsageTracker()
+    @StateObject private var sponsorship = SponsorshipStore()
 
     var body: some Scene {
         WindowGroup {
@@ -21,7 +22,9 @@ struct PhotoCleanerApp: App {
                 .environmentObject(themeManager)
                 .environmentObject(languageManager)
                 .environmentObject(usage)
+                .environmentObject(sponsorship)
                 .tint(AppPalette.brand)
+                .task { await sponsorship.start() }
         }
     }
 }

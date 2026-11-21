@@ -4,14 +4,14 @@
 
 <p align="center"><a href="README.md">English</a> · <a href="README.zh.md">中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a></p>
 
-iPhone、iPad、iPhone Duo 向けの無料オープンソース写真整理アプリ。SwiftUI ネイティブで、サブスクリプション、アプリ内課金、利用上限はありません。
+iPhone、iPad、iPhone Duo 向けの無料オープンソース写真整理アプリ。SwiftUI ネイティブで、全機能が無料、利用上限もありません。任意の一回限りの支援購入は機能を解除せず、自動更新もありません。
 
 > RollKeep の開発、ソースコード、Issue、リリース、公式サイトは、このリポジトリに統合されました。
 
 ![iOS](https://img.shields.io/badge/iOS-17%2B-black?logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-5-orange?logo=swift)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue)
-![Version](https://img.shields.io/badge/version-1.3.0-success)
+![Version](https://img.shields.io/badge/version-1.3.1-success)
 
 ## 機能
 
@@ -58,6 +58,10 @@ bash scripts/build-ipa.sh
 - `PhotoCleaner.xcodeproj/` — Xcode project.
 - `docs/` — GitHub Pages website, privacy policy, and terms.
 - `scripts/` — Build and icon generation utilities.
+
+## 任意の開発支援
+
+設定の支援画面から、米国基準価格 **$0.99、$1.99、$2.99、$5.99、$9.99** の一回限りの消耗型購入で繰り返し応援できます。実際の現地価格と通貨は Apple の購入確認画面に表示されます。追加機能や利用上限の変更、サブスクリプションは含まれません。過去の購読は Apple の管理画面で確認できます。
 
 ## プライバシー
 

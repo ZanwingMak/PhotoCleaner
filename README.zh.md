@@ -4,14 +4,14 @@
 
 <p align="center"><a href="README.md">English</a> · <a href="README.zh.md">中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a></p>
 
-适用于 iPhone、iPad 和 iPhone Duo 的免费开源照片整理工具，使用原生 SwiftUI 开发。全部功能免费，无订阅、无内购、无使用额度限制。
+适用于 iPhone、iPad 和 iPhone Duo 的免费开源照片整理工具，使用原生 SwiftUI 开发。全部功能免费且不限使用额度；可自愿通过一次性内购赞助开发，不解锁功能、不自动续费。
 
 > 这是 RollKeep 唯一持续维护的仓库。源码、问题反馈、版本发布和官网统一在此维护。
 
 ![iOS](https://img.shields.io/badge/iOS-17%2B-black?logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-5-orange?logo=swift)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue)
-![Version](https://img.shields.io/badge/version-1.3.0-success)
+![Version](https://img.shields.io/badge/version-1.3.1-success)
 
 ## 功能
 
@@ -58,6 +58,10 @@ bash scripts/build-ipa.sh
 - `PhotoCleaner.xcodeproj/` — Xcode project.
 - `docs/` — GitHub Pages website, privacy policy, and terms.
 - `scripts/` — Build and icon generation utilities.
+
+## 自愿赞助
+
+在设置的“赞助支持”中，可选择美元基准价 **$0.99、$1.99、$2.99、$5.99、$9.99** 的一次性消耗型赞助，支持重复购买。实际金额与币种以 Apple 付款前显示的当地价格为准。赞助不解锁功能、不改变使用额度，也不产生订阅；历史订阅可通过 Apple 订阅管理查看。
 
 ## 隐私
 

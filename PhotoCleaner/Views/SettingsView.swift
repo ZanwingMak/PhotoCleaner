@@ -23,6 +23,7 @@ struct SettingsView: View {
     @State private var isScanning = false
     @State private var toast: ToastInfo?
     @State private var showTutorial = false
+    @State private var showSponsorship = false
 
     /// 分享当前官网，统一提供源码、发布版本与支持入口。
     private let websiteURL = URL(string: "https://zanwingmak.github.io/PhotoCleaner/")
@@ -70,6 +71,10 @@ struct SettingsView: View {
                         }
 
                         section(lm.t("支持我们")) {
+                            actionRow(label: lm.t("赞助支持"), symbol: "heart", tint: AppPalette.brand) {
+                                showSponsorship = true
+                            }
+                            divider
                             actionRow(label: lm.t("给个好评"), symbol: "star.fill", tint: .yellow) {
                                 requestReview()
                             }
@@ -109,6 +114,9 @@ struct SettingsView: View {
             }
             .toast($toast)
             .task { await updateChecker.check() }
+            .sheet(isPresented: $showSponsorship) {
+                SponsorshipView()
+            }
             .fullScreenCover(isPresented: $showTutorial) {
                 TutorialView {
                     showTutorial = false
@@ -136,7 +144,7 @@ struct SettingsView: View {
             Label(lm.t("免费开源"), systemImage: "chevron.left.forwardslash.chevron.right")
                 .font(.headline)
                 .foregroundStyle(AppPalette.brand)
-            Text(lm.t("全部功能免费使用，无订阅、无内购、无使用额度限制。"))
+            Text(lm.t("全部功能免费，无使用额度限制。自愿赞助不解锁功能，也不自动续费。"))
                 .font(.subheadline)
                 .foregroundStyle(AppPalette.textSecondary(for: theme))
             linkRow(label: lm.t("查看源代码"), symbol: "arrow.up.right.square",

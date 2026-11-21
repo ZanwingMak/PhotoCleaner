@@ -4,14 +4,14 @@
 
 <p align="center"><a href="README.md">English</a> · <a href="README.zh.md">中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a></p>
 
-Free, open-source photo organization for iPhone, iPad, and iPhone Duo, built with native SwiftUI. All features are available without subscriptions, in-app purchases, or usage limits.
+Free, open-source photo organization for iPhone, iPad, and iPhone Duo, built with native SwiftUI. Every feature is free with no usage limits. Optional one-time support purchases help development and never unlock features or renew automatically.
 
 > This is the only maintained repository for RollKeep. Source code, issues, releases, and the official website are maintained here.
 
 ![iOS](https://img.shields.io/badge/iOS-17%2B-black?logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-5-orange?logo=swift)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue)
-![Version](https://img.shields.io/badge/version-1.3.0-success)
+![Version](https://img.shields.io/badge/version-1.3.1-success)
 
 ## Features
 
@@ -58,6 +58,10 @@ Interface previews; current source also includes cleanup insights and adaptive l
 - `PhotoCleaner.xcodeproj/` — Xcode project.
 - `docs/` — GitHub Pages website, privacy policy, and terms.
 - `scripts/` — Build and icon generation utilities.
+
+## Voluntary support
+
+In Settings → Support, you can make a one-time consumable purchase with a US base price of **$0.99, $1.99, $2.99, $5.99, or $9.99**. You may contribute repeatedly; the actual local price is shown by Apple before payment. Support does not unlock features, change limits, or create a subscription. Previous subscriptions can be viewed in Apple’s subscription management.
 
 ## Privacy
 

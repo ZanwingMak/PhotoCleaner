@@ -7,6 +7,21 @@ import Foundation
 
 enum L10n {
     static let dict: [String: [AppLanguage: String]] = [
+        // 自愿赞助：未翻译的区域语言使用现有的英文回退。
+        "全部功能免费，无使用额度限制。自愿赞助不解锁功能，也不自动续费。": [.en: "All features are free, without usage limits. Optional support does not unlock features or renew automatically.", .ja: "全機能が無料で利用制限はありません。任意の支援で機能が変わることや自動更新はありません。", .ko: "모든 기능이 무료이며 사용량 제한이 없습니다. 후원은 기능을 잠금 해제하거나 자동 갱신되지 않습니다."],
+        "感谢赞助开发": [.en: "Thanks for supporting development", .ja: "開発へのご支援に感謝します", .ko: "개발 후원에 감사드립니다"],
+        "如果 RollKeep 帮你整理了照片，欢迎支持它继续成长。": [.en: "If RollKeep helps you organize your photos, you can support its continued development.", .ja: "RollKeep が写真整理に役立っているなら、開発の継続を応援できます。", .ko: "RollKeep가 사진 정리에 도움이 된다면 지속적인 개발을 후원해 주세요."],
+        "所有功能免费开放。赞助完全自愿，不解锁额外功能，也不会自动续费。": [.en: "Every feature is free. Support is entirely optional, unlocks no extra features, and never renews automatically.", .ja: "全機能が無料です。支援は完全に任意で、追加機能の解除や自動更新はありません。", .ko: "모든 기능이 무료입니다. 후원은 전적으로 선택 사항이며 추가 기능이나 자동 갱신이 없습니다."],
+        "正在加载赞助项目": [.en: "Loading support options", .ja: "支援項目を読み込み中", .ko: "후원 항목 불러오는 중"],
+        "重新加载": [.en: "Try again", .ja: "再読み込み", .ko: "다시 불러오기"],
+        "暂时无法加载赞助项目，请稍后重试。": [.en: "Support options could not be loaded. Please try again later.", .ja: "支援項目を読み込めませんでした。後でもう一度お試しください。", .ko: "후원 항목을 불러올 수 없습니다. 나중에 다시 시도해 주세요."],
+        "无法验证本次赞助，请联系 Apple 支持。": [.en: "This purchase could not be verified. Please contact Apple Support.", .ja: "購入を確認できませんでした。Apple サポートにお問い合わせください。", .ko: "구매를 확인할 수 없습니다. Apple 지원에 문의해 주세요."],
+        "赞助正在等待 Apple 批准。": [.en: "Your purchase is awaiting approval from Apple.", .ja: "購入は Apple の承認待ちです。", .ko: "구매가 Apple 승인을 기다리고 있습니다."],
+        "赞助未完成，请稍后重试。": [.en: "Support was not completed. Please try again later.", .ja: "支援は完了していません。後でもう一度お試しください。", .ko: "후원이 완료되지 않았습니다. 나중에 다시 시도해 주세요."],
+        "感谢你的赞助与支持！": [.en: "Thank you for your support!", .ja: "ご支援ありがとうございます！", .ko: "후원해 주셔서 감사합니다!"],
+        "每次赞助均为一次性消耗型购买，可以重复支持；不包含需要恢复的功能权益。": [.en: "Each contribution is a one-time consumable purchase and can be repeated. There are no feature entitlements to restore.", .ja: "支援は繰り返し可能な一回限りの消耗型購入です。復元が必要な機能の権利は含まれません。", .ko: "후원은 반복 가능한 일회성 소모성 구매입니다. 복원할 기능 이용 권한은 포함되지 않습니다."],
+        "管理历史订阅": [.en: "Manage previous subscriptions", .ja: "以前のサブスクリプションを管理", .ko: "이전 구독 관리"],
+
         // 通用
         "RollKeep": [.zh: "RollKeep", .en: "RollKeep", .ja: "RollKeep", .ko: "RollKeep"],
         "整理你的照片库，腾出存储空间": [.en: "Tidy your photo library, free up space", .ja: "写真ライブラリを整理して空き容量を確保", .ko: "사진 라이브러리 정리, 저장 공간 확보"],
@@ -363,11 +378,6 @@ enum L10n {
         "问题反馈": [.en: "Report an Issue", .ja: "問題を報告", .ko: "문제 신고"],
         "查看源代码": [.en: "View Source Code", .ja: "ソースコードを見る", .ko: "소스 코드 보기"],
         "开源许可 (GPLv3)": [.en: "Open Source License (GPLv3)", .ja: "オープンソースライセンス (GPLv3)", .ko: "오픈 소스 라이선스 (GPLv3)"],
-        "全部功能免费使用，无订阅、无内购、无使用额度限制。": [
-            .en: "All features are free, with no subscriptions, in-app purchases, or usage limits.",
-            .ja: "すべての機能が無料。サブスクリプション、アプリ内課金、利用制限はありません。",
-            .ko: "모든 기능이 무료이며 구독, 앱 내 구매, 사용량 제한이 없습니다."
-        ],
 
     ]
 }

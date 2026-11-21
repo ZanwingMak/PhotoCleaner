@@ -4,14 +4,14 @@
 
 <p align="center"><a href="README.md">English</a> · <a href="README.zh.md">中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a></p>
 
-iPhone, iPad, iPhone Duo용 무료 오픈 소스 사진 정리 앱입니다. 네이티브 SwiftUI로 개발했으며 구독, 앱 내 구매, 사용량 제한이 없습니다.
+iPhone, iPad, iPhone Duo용 무료 오픈 소스 사진 정리 앱입니다. 네이티브 SwiftUI로 개발했으며 모든 기능이 무료이고 사용량 제한이 없습니다. 선택적인 일회성 후원 구매는 기능을 잠금 해제하거나 자동 갱신되지 않습니다.
 
 > RollKeep의 소스 코드, 이슈, 릴리스, 공식 웹사이트는 이 저장소에서만 계속 관리합니다.
 
 ![iOS](https://img.shields.io/badge/iOS-17%2B-black?logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-5-orange?logo=swift)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue)
-![Version](https://img.shields.io/badge/version-1.3.0-success)
+![Version](https://img.shields.io/badge/version-1.3.1-success)
 
 ## 기능
 
@@ -58,6 +58,10 @@ bash scripts/build-ipa.sh
 - `PhotoCleaner.xcodeproj/` — Xcode project.
 - `docs/` — GitHub Pages website, privacy policy, and terms.
 - `scripts/` — Build and icon generation utilities.
+
+## 자발적 후원
+
+설정의 후원 화면에서 미국 기준 가격 **$0.99, $1.99, $2.99, $5.99, $9.99**의 일회성 소모성 구매로 반복 후원할 수 있습니다. 실제 현지 가격과 통화는 결제 전 Apple 확인 화면에 표시됩니다. 후원에는 추가 기능, 한도 변경 또는 구독이 포함되지 않습니다. 이전 구독은 Apple 구독 관리에서 확인할 수 있습니다.
 
 ## 개인정보
 
