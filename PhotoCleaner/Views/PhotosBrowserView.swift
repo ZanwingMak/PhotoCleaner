@@ -44,7 +44,7 @@ struct PhotosBrowserView: View {
     @State private var previewAsset: PHAsset?
     @State private var metadataAsset: PHAsset?
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 3)
+    private let columns = [GridItem(.adaptive(minimum: 100, maximum: 180), spacing: 2)]
 
     /// 当前筛选后的资产
     private var filteredAssets: [PHAsset] {

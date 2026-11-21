@@ -33,6 +33,7 @@ enum ThumbnailCache {
 struct PhotoCardView: View {
     let asset: PHAsset
     @EnvironmentObject private var library: PhotoLibraryService
+    @Environment(\.displayScale) private var displayScale
 
     @State private var image: UIImage?
     @State private var imageRequestID: PHImageRequestID?
@@ -68,18 +69,22 @@ struct PhotoCardView: View {
             .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
             // 已去掉边框 strokeBorder 和外阴影 shadow（防止深色背景的"画框感"）
             .onAppear { load(targetSize: geo.size) }
+            .onChange(of: geo.size) { _, size in load(targetSize: size) }
             .onDisappear { cancelLoad() }
         }
     }
 
-    /// 异步加载静态预览：先用缓存，缺时才请求
+    /// 使用当前窗口的像素尺寸加载预览；窗口变大时补充清晰图像。
     private func load(targetSize: CGSize) {
-        let scale = UIScreen.main.scale
-        let target = CGSize(width: targetSize.width * scale,
-                             height: targetSize.height * scale)
+        guard targetSize.width > 0, targetSize.height > 0 else { return }
+        let target = CGSize(width: targetSize.width * displayScale,
+                             height: targetSize.height * displayScale)
 
         // 静态图：已有 cache 就不重新加载，避免切换时闪
-        if image == nil {
+        let requiredSide = min(2400, max(target.width, target.height))
+        let cachedSide = image.map { max($0.size.width, $0.size.height) * $0.scale } ?? 0
+        if cachedSide < requiredSide {
+            cancelLoad()
             imageRequestID = library.loadImage(for: asset, targetSize: target) { img in
                 guard let img else { return }
                 ThumbnailCache.set(asset.localIdentifier, img)

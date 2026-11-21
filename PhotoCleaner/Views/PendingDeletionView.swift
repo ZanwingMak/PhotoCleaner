@@ -20,8 +20,8 @@ struct PendingDeletionView: View {
     @State private var showConfirm = false
     @State private var isDeleting = false
 
-    // 固定 3 列，每个 cell 1:1 正方形，避免自适应导致缩略图大小不一/横向拉伸重叠
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
+    // 按当前窗口宽度增减列数，每个缩略图仍保持正方形。
+    private let columns = [GridItem(.adaptive(minimum: 96, maximum: 180), spacing: 8)]
 
     /// 当前选中的资产
     private var selectedAssets: [PHAsset] {

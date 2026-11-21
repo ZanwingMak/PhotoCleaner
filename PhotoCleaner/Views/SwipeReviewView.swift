@@ -135,20 +135,19 @@ struct SwipeReviewView: View {
     let category: PhotoCategory
     @EnvironmentObject private var library: PhotoLibraryService
     @EnvironmentObject private var lm: LanguageManager
-    @EnvironmentObject private var store: StoreService
     @EnvironmentObject private var usage: UsageTracker
     @StateObject private var vm: SwipeReviewViewModel
     @Environment(\.dismiss) private var dismiss
 
     @State private var dragOffset: CGSize = .zero
+    @State private var isAnimating = false
+    @State private var reviewSize: CGSize = .zero
     @State private var showPendingSheet = false
     @State private var toast: ToastInfo?
     @State private var hasLoaded = false
     @State private var showCategoryPicker = false
     @State private var showMetadata = false
     @State private var currentCategory: PhotoCategory
-    @State private var showPaywall = false
-    @State private var paywallReason: PaywallReason = .upgrade
     @State private var sortOption: ReviewSortOption = .newest
 
     /// 退出/切换时待处理的目标：dismiss 或切换到某分类
@@ -169,6 +168,7 @@ struct SwipeReviewView: View {
 
     enum ExitDirection { case none, left, right, up }
 
+    /// 创建独立审核会话，布局变化时保留当前队列与待删除选择。
     init(category: PhotoCategory) {
         self.category = category
         _currentCategory = State(initialValue: category)
@@ -180,60 +180,53 @@ struct SwipeReviewView: View {
             // 图片浏览页固定深色（看图行业标准），confirmationDialog 不受主题影响仍清晰
             Color.black.ignoresSafeArea()
 
-            // 中间内容层：卡片或状态视图，给 toolbar 留出 inset
-            GeometryReader { geo in
-                ZStack {
-                    if !hasLoaded {
-                        ProgressView().tint(.white)
-                    } else if vm.assets.isEmpty {
-                        emptyState
-                    } else if !vm.hasMore {
-                        finishedState
-                    } else {
-                        cardArea(in: CGSize(width: geo.size.width,
-                                            height: geo.size.height - 196))
-                        directionOverlay(in: geo.size)
+            VStack(spacing: 8) {
+                VStack(spacing: 6) {
+                    topBar
+                        .disabled(isAnimating)
+                    metaLine
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+
+                GeometryReader { geometry in
+                    ZStack(alignment: .bottomLeading) {
+                        Group {
+                            if !hasLoaded {
+                                ProgressView().tint(.white)
+                            } else if vm.assets.isEmpty {
+                                emptyState
+                            } else if !vm.hasMore {
+                                ScrollView { finishedState }
+                            } else {
+                                cardArea(in: geometry.size)
+                                directionOverlay(in: geometry.size)
+                            }
+                        }
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+
+                        if vm.hasMore {
+                            metaPillFixed
+                                .transaction { $0.animation = nil }
+                                .padding(20)
+                                .allowsHitTesting(false)
+                        }
+                    }
+                    .clipped()
+                    .onAppear { reviewSize = geometry.size }
+                    .onChange(of: geometry.size) { _, _ in
+                        reviewSize = geometry.size
+                        // Duo 折叠或窗口缩放时取消尚未提交的拖拽，保留审核进度。
+                        if !isAnimating { dragOffset = .zero }
                     }
                 }
-                .frame(width: geo.size.width, height: geo.size.height)
-            }
-            .padding(.top, 96)    // 给 topBar + metaLine 留空间
-            .padding(.bottom, 100) // 给 bottomBar 留空间
 
-            // 顶部 overlay：用 zIndex 强制在卡片之上
-            VStack(spacing: 0) {
-                topBar
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
-                metaLine
-                    .padding(.top, 6)
-                Spacer()
-            }
-            .zIndex(10)
-
-            // 元数据胶囊（固定层，不随卡片动画飞）
-            VStack(spacing: 0) {
-                Spacer()
-                HStack {
-                    metaPillFixed
-                        .transaction { $0.animation = nil } // 切换 asset 时不带动画
-                        .id(vm.currentAsset?.localIdentifier ?? "none")
-                    Spacer()
-                }
-                .padding(.horizontal, 32)
-                .padding(.bottom, 110) // 在底部按钮之上
-            }
-            .zIndex(9)
-            .allowsHitTesting(false)
-
-            // 底部 overlay
-            VStack(spacing: 0) {
-                Spacer()
                 bottomBar
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 12)
+                    .frame(maxWidth: 560)
+                    .padding(.bottom, 8)
             }
-            .zIndex(10)
+            .frame(maxWidth: 1100)
+
         }
         .toast($toast)
         // 跟随全局主题，不再强制 dark
@@ -248,9 +241,6 @@ struct SwipeReviewView: View {
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
             }
-        }
-        .sheet(isPresented: $showPaywall) {
-            PaywallView(reason: paywallReason)
         }
         .sheet(isPresented: $showCategoryPicker) {
             CategoryPickerSheet(currentId: currentCategory.id) { newCategory in
@@ -311,7 +301,7 @@ struct SwipeReviewView: View {
         Task { await loadAssets(for: newCategory) }
     }
 
-    /// 按当前排序加载完整分类队列；免费用户仍受每日审核上限保护
+    /// 按当前排序加载完整分类队列。
     private func loadAssets(for cat: PhotoCategory) async {
         let allAssets = library.fetchAssets(for: cat)
         let orderedAssets = sortAssets(allAssets, by: sortOption)
@@ -342,34 +332,9 @@ struct SwipeReviewView: View {
                               tint: AppPalette.brand)
             return
         }
-        if option == .largest && !store.isPro {
-            paywallReason = .spacePriorityLocked
-            showPaywall = true
-            return
-        }
         sortOption = option
         hasLoaded = false
         Task { await loadAssets(for: currentCategory) }
-    }
-
-    /// 免费版规则检查：返回 true 表示允许继续；false 表示已弹付费墙
-    private func enforceFreeLimits(for action: SwipeAction) -> Bool {
-        if store.isPro || action == .previous { return true }
-
-        // 1) 每日审核上限
-        if !usage.canReviewMore(isPro: false) {
-            paywallReason = .dailyLimit
-            showPaywall = true
-            return false
-        }
-
-        // 2) 待删除列表上限（仅在 markDelete 时校验）
-        if action == .markDelete && vm.pendingDeletion.count >= FreeLimits.pendingMax {
-            paywallReason = .pendingFull
-            showPaywall = true
-            return false
-        }
-        return true
     }
 
     // MARK: - 顶部三件套
@@ -402,6 +367,8 @@ struct SwipeReviewView: View {
             } label: {
                 HStack(spacing: 6) {
                     Text(lm.t(currentCategory.title))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(.white)
                     Image(systemName: "chevron.down")
@@ -434,16 +401,14 @@ struct SwipeReviewView: View {
         }
     }
 
-    /// 排序菜单：最新/最早免费，空间优先为 Pro 能力
+    /// 排序菜单：提供最新、最早与空间优先三种方式。
     private var sortMenu: some View {
         Menu {
             ForEach(ReviewSortOption.allCases, id: \.rawValue) { option in
                 Button {
                     selectSortOption(option)
                 } label: {
-                    if option == .largest && !store.isPro {
-                        Label("\(lm.t(option.titleKey)) · \(lm.t("会员"))", systemImage: "lock.fill")
-                    } else if option == sortOption {
+                    if option == sortOption {
                         Label(lm.t(option.titleKey), systemImage: "checkmark")
                     } else {
                         Label(lm.t(option.titleKey), systemImage: option.symbol)
@@ -612,7 +577,7 @@ struct SwipeReviewView: View {
     ///   progress < 0  = 左滑   = 下一张 next 从**右侧**推过来
     ///   progress > 0  = 右滑   = 前一张 prev 从**左侧**推过来
     private var swipeProgress: CGFloat {
-        let p = dragOffset.width / 360.0
+        let p = dragOffset.width / max(1, reviewSize.width * 0.85)
         return max(-1, min(1, p))
     }
 
@@ -693,16 +658,19 @@ struct SwipeReviewView: View {
 
     // MARK: - 拖拽手势（iOS 标准方向）
 
+    /// 按卡片可用尺寸判断滑动距离，兼容横屏和分屏下较矮的内容区。
     private func dragGesture(in size: CGSize) -> some Gesture {
         DragGesture()
             .onChanged { value in
+                guard !isAnimating else { return }
                 dragOffset = value.translation
             }
             .onEnded { value in
+                guard !isAnimating else { return }
                 let h = value.translation.width
                 let v = value.translation.height
-                let hThreshold: CGFloat = 100
-                let upThreshold: CGFloat = -130
+                let hThreshold = min(100, size.width * 0.25)
+                let upThreshold = -min(130, size.height * 0.3)
 
                 // 上滑优先
                 if v < upThreshold && abs(v) > abs(h) {
@@ -734,16 +702,12 @@ struct SwipeReviewView: View {
     /// 触发动作：spring 推进 dragOffset → coverflow 自然完成 → 静默切换数据
     /// 不再用 exitDirection 触发双重动画
     private func trigger(_ action: SwipeAction, direction: ExitDirection) {
-        // 免费版上限校验：未通过则中止动作并弹付费墙
-        guard enforceFreeLimits(for: action) else {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                dragOffset = .zero
-            }
-            return
-        }
-        // 只有做出保留/删除决定才计入审核，返回上一张不重复消耗额度
+        guard !isAnimating, vm.hasMore,
+              action != .previous || vm.canGoPrevious else { return }
+        isAnimating = true
+        // 只有做出保留/删除决定才计入审核，返回上一张不重复计数。
         if action != .previous {
-            usage.recordReview(isPro: store.isPro)
+            usage.recordReview()
         }
 
         AppHaptics.impact(action == .markDelete ? .heavy : .light)
@@ -751,10 +715,12 @@ struct SwipeReviewView: View {
         // 推进 dragOffset 到屏幕外，coverflow 各卡跟随到目标位置
         let target: CGSize
         switch direction {
-        case .left:  target = CGSize(width: -800, height: 0)
-        case .right: target = CGSize(width: 800, height: 0)
-        case .up:    target = CGSize(width: 0, height: -1200)
-        case .none:  return
+        case .left:  target = CGSize(width: -(reviewSize.width + 200), height: 0)
+        case .right: target = CGSize(width: reviewSize.width + 200, height: 0)
+        case .up:    target = CGSize(width: 0, height: -(reviewSize.height + 200))
+        case .none:
+            isAnimating = false
+            return
         }
 
         withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
@@ -768,6 +734,7 @@ struct SwipeReviewView: View {
             withTransaction(t) {
                 vm.handle(action)
                 dragOffset = .zero
+                isAnimating = false
             }
 
             // markDelete 触发 toast
@@ -898,11 +865,11 @@ struct SwipeReviewView: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(color.opacity(disabled ? 0.3 : 1))
             }
-            .frame(width: 64, height: 64)
+            .frame(maxWidth: .infinity, minHeight: 64)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .disabled(disabled)
+        .disabled(disabled || isAnimating)
     }
 
     // MARK: - 空状态

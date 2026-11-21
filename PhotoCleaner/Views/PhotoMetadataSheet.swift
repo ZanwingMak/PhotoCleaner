@@ -19,6 +19,7 @@ struct PhotoMetadataSheet: View {
     @State private var resources: [PHAssetResource] = []
     @State private var totalSize: Int64 = 0
     @State private var fileName: String = "—"
+    @State private var showShareSheet = false
 
     var body: some View {
         NavigationStack {
@@ -34,9 +35,14 @@ struct PhotoMetadataSheet: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
+                    .frame(maxWidth: 680)
+                    .frame(maxWidth: .infinity)
                 }
             }
             .preferredColorScheme(themeManager.current.colorScheme)
+            .sheet(isPresented: $showShareSheet) {
+                if let image { PhotoShareSheet(image: image) }
+            }
             .navigationTitle(lm.t("照片详情"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -246,18 +252,10 @@ struct PhotoMetadataSheet: View {
         }
     }
 
-    /// 分享：用系统 UIActivityViewController
+    /// 从当前详情页呈现系统分享面板，适配 iPad 与 Duo 的窗口尺寸。
     private func share() {
         AppHaptics.impact(.light)
-        guard let image else { return }
-        let av = UIActivityViewController(activityItems: [image], applicationActivities: nil)
-        // 找到当前 active window 的 rootVC 来 present
-        if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-           let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController {
-            // 找到最顶层的 presented controller
-            var top = root
-            while let presented = top.presentedViewController { top = presented }
-            top.present(av, animated: true)
-        }
+        guard image != nil else { return }
+        showShareSheet = true
     }
 }

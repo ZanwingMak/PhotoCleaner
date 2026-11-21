@@ -1,6 +1,6 @@
 //
 //  SettingsView.swift
-//  设置面板：会员状态 + 偏好开关 + 主题切换 + 关于
+//  设置面板：免费开源信息 + 偏好开关 + 主题切换 + 关于
 //
 
 import SwiftUI
@@ -14,8 +14,7 @@ struct SettingsView: View {
     @EnvironmentObject private var library: PhotoLibraryService
     @EnvironmentObject private var themeManager: ThemeManager
     @EnvironmentObject private var lm: LanguageManager
-    @EnvironmentObject private var store: StoreService
-    @EnvironmentObject private var usage: UsageTracker
+    @StateObject private var updateChecker = UpdateChecker()
 
     @AppStorage("haptics_enabled")        private var hapticsEnabled = true
     @AppStorage("thumbnail_hq")           private var hqThumbnails = true
@@ -23,12 +22,10 @@ struct SettingsView: View {
 
     @State private var isScanning = false
     @State private var toast: ToastInfo?
-    @State private var showPaywall = false
     @State private var showTutorial = false
-    @State private var paywallReason: PaywallReason = .upgrade
 
-    /// 分享正式 App Store 商品页
-    private let appStoreURL = URL(string: "https://apps.apple.com/app/id6784522025")
+    /// 分享当前官网，统一提供源码、发布版本与支持入口。
+    private let websiteURL = URL(string: "https://zanwingmak.github.io/PhotoCleaner/")
         ?? URL(fileURLWithPath: "/")
 
     var body: some View {
@@ -40,7 +37,7 @@ struct SettingsView: View {
                     VStack(spacing: 22) {
                         brandHeader
 
-                        membershipSection
+                        openSourceSection
 
                         section(lm.t("外观")) {
                             themePickerRow
@@ -68,11 +65,6 @@ struct SettingsView: View {
                         section(lm.t("数据")) {
                             infoRow(label: lm.t("已扫描照片"), symbol: "photo.on.rectangle",
                                      value: "\(library.categoryCounts[PhotoCategory.allPhotos.id] ?? 0)")
-                            if !store.isPro {
-                                divider
-                                infoRow(label: lm.t("今日剩余可整理"), symbol: "gauge.with.dots.needle.50percent",
-                                         value: "\(usage.remainingToday(isPro: false))")
-                            }
                             divider
                             scanRow
                         }
@@ -85,23 +77,25 @@ struct SettingsView: View {
                             shareRow
                         }
 
-                        section(lm.t("账户")) {
-                            actionRow(label: lm.t("已经购买?"), symbol: "arrow.clockwise.circle.fill", tint: AppPalette.brand) {
-                                Task { await performRestore() }
-                            }
-                            divider
-                            linkRow(label: lm.t("管理订阅"), symbol: "creditcard.fill",
-                                     url: "https://apps.apple.com/account/subscriptions")
-                        }
-
                         section(lm.t("关于")) {
                             infoRow(label: lm.t("版本"), symbol: "info.circle", value: appVersion)
+                            if updateChecker.hasUpdate, let releaseURL = updateChecker.releaseURL {
+                                divider
+                                linkRow(label: String(format: lm.t("发现新版本 %@"), updateChecker.latestVersion ?? ""),
+                                        symbol: "arrow.down.circle.fill", url: releaseURL.absoluteString)
+                            }
+                            divider
+                            linkRow(label: lm.t("官方网站"), symbol: "globe",
+                                     url: "https://zanwingmak.github.io/PhotoCleaner/")
+                            divider
+                            linkRow(label: lm.t("问题反馈"), symbol: "bubble.left.and.bubble.right",
+                                     url: "https://github.com/ZanwingMak/PhotoCleaner/issues")
                             divider
                             linkRow(label: lm.t("隐私政策"), symbol: "hand.raised.fill",
-                                     url: "https://zanwingmak.github.io/PhotoCleaner-OpenSource/privacy.html")
+                                     url: "https://zanwingmak.github.io/PhotoCleaner/privacy.html")
                             divider
-                            linkRow(label: lm.t("使用条款 (EULA)"), symbol: "doc.text.fill",
-                                     url: "https://zanwingmak.github.io/PhotoCleaner-OpenSource/terms.html")
+                            linkRow(label: lm.t("开源许可 (GPLv3)"), symbol: "doc.text.fill",
+                                     url: "https://github.com/ZanwingMak/PhotoCleaner/blob/main/LICENSE")
                         }
 
                         footerNote
@@ -109,12 +103,12 @@ struct SettingsView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
+                    .frame(maxWidth: 680)
+                    .frame(maxWidth: .infinity)
                 }
             }
             .toast($toast)
-            .sheet(isPresented: $showPaywall) {
-                PaywallView(reason: paywallReason)
-            }
+            .task { await updateChecker.check() }
             .fullScreenCover(isPresented: $showTutorial) {
                 TutorialView {
                     showTutorial = false
@@ -136,57 +130,26 @@ struct SettingsView: View {
         .id(themeManager.current.rawValue)
     }
 
-    // MARK: - 会员卡片
-
-    private var membershipSection: some View {
-        Button {
-            AppHaptics.impact(.soft)
-            if !store.isPro {
-                paywallReason = .upgrade
-                showPaywall = true
-            }
-        } label: {
-            HStack(spacing: 14) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(AppPalette.brandGradient)
-                        .frame(width: 52, height: 52)
-                    Image(systemName: store.isPro ? "crown.fill" : "sparkles")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundStyle(.white)
-                }
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(store.isPro ? lm.t("RollKeep 会员") : lm.t("升级会员"))
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundStyle(AppPalette.textPrimary(for: themeManager.current))
-                    Text(store.isPro ? lm.t("已解锁全部功能") : lm.t("解锁无限整理与深度洞察"))
-                        .font(.system(size: 12))
-                        .foregroundStyle(AppPalette.textSecondary(for: themeManager.current))
-                }
-                Spacer()
-                if !store.isPro {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(AppPalette.textTertiary(for: themeManager.current))
-                }
-            }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(AppPalette.bgCard(for: themeManager.current))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .strokeBorder(AppPalette.brand.opacity(store.isPro ? 0.5 : 0.18), lineWidth: 1.5)
-                    )
-            )
+    /// 免费开源说明与源码入口。
+    private var openSourceSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label(lm.t("免费开源"), systemImage: "chevron.left.forwardslash.chevron.right")
+                .font(.headline)
+                .foregroundStyle(AppPalette.brand)
+            Text(lm.t("全部功能免费使用，无订阅、无内购、无使用额度限制。"))
+                .font(.subheadline)
+                .foregroundStyle(AppPalette.textSecondary(for: theme))
+            linkRow(label: lm.t("查看源代码"), symbol: "arrow.up.right.square",
+                    url: "https://github.com/ZanwingMak/PhotoCleaner")
         }
-        .buttonStyle(.plain)
-        .disabled(store.isPro)
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppPalette.bgCard(for: theme), in: RoundedRectangle(cornerRadius: 18))
     }
 
-    /// 分享行：把 App Store 链接通过系统分享面板送出
+    /// 分享行：通过系统分享面板发送当前官网链接。
     private var shareRow: some View {
-        ShareLink(item: appStoreURL,
+        ShareLink(item: websiteURL,
                   subject: Text(lm.t("RollKeep")),
                   message: Text(lm.t("用 RollKeep 整理你的照片库，腾出更多空间。"))) {
             HStack(spacing: 14) {
@@ -204,21 +167,6 @@ struct SettingsView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-    }
-
-    /// 恢复购买并反馈
-    private func performRestore() async {
-        let ok = await store.restore()
-        if ok {
-            AppHaptics.notify(.success)
-            toast = ToastInfo(symbol: "checkmark.circle.fill",
-                              text: lm.t("已恢复会员权益"),
-                              tint: AppPalette.success)
-        } else {
-            toast = ToastInfo(symbol: "info.circle.fill",
-                              text: lm.t("未找到可恢复的购买记录"),
-                              tint: AppPalette.textSecondary(for: theme))
-        }
     }
 
     // MARK: - 语言选择行
@@ -367,7 +315,7 @@ struct SettingsView: View {
         .padding(.bottom, 8)
     }
 
-    // MARK: - 主题切换行（5 个色块横向，非 Pro 锁定）
+    // MARK: - 主题切换行
 
     private var themePickerRow: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -386,12 +334,7 @@ struct SettingsView: View {
                 ForEach(AppTheme.allCases) { t in
                     Button {
                         AppHaptics.impact(.soft)
-                        if store.isPro || !t.isPremium {
-                            themeManager.set(t)
-                        } else {
-                            paywallReason = .themeLocked
-                            showPaywall = true
-                        }
+                        themeManager.set(t)
                     } label: {
                         themeSwatch(t)
                     }
@@ -403,10 +346,9 @@ struct SettingsView: View {
         .padding(.vertical, 14)
     }
 
-    /// 单个主题色块；非 Pro 显示小锁
+    /// 展示主题预览和当前选择。
     private func themeSwatch(_ t: AppTheme) -> some View {
         let isSelected = themeManager.current == t
-        let locked = !store.isPro && t.isPremium
         return VStack(spacing: 6) {
             ZStack {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -423,14 +365,7 @@ struct SettingsView: View {
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(t == .light ? .black : .white)
                     .opacity(0.8)
-                if locked && !isSelected {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(4)
-                        .background(Circle().fill(.black.opacity(0.55)))
-                        .offset(x: 16, y: 16)
-                }
+
             }
             Text(lm.t(t.title))
                 .font(.system(size: 10, weight: isSelected ? .bold : .medium))

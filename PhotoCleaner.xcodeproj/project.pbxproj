@@ -32,9 +32,7 @@
 		BF000000000000000000A017 /* LivePhotoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A017 /* LivePhotoView.swift */; };
 		BF000000000000000000A018 /* CustomDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A018 /* CustomDialog.swift */; };
 		BF000000000000000000A019 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A019 /* UpdateChecker.swift */; };
-		BF000000000000000000A01A /* StoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01A /* StoreService.swift */; };
 		BF000000000000000000A01B /* UsageTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01B /* UsageTracker.swift */; };
-		BF000000000000000000A01C /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01C /* PaywallView.swift */; };
 		BF000000000000000000A01D /* CleanupInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01D /* CleanupInsightsView.swift */; };
 		BF000000000000000000A01E /* AppHaptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01E /* AppHaptics.swift */; };
 		BF000000000000000000A01F /* TutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000A01F /* TutorialView.swift */; };
@@ -70,13 +68,10 @@
 		F0000000000000000000A017 /* LivePhotoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePhotoView.swift; sourceTree = "<group>"; };
 		F0000000000000000000A018 /* CustomDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDialog.swift; sourceTree = "<group>"; };
 		F0000000000000000000A019 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
-		F0000000000000000000A01A /* StoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreService.swift; sourceTree = "<group>"; };
 		F0000000000000000000A01B /* UsageTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageTracker.swift; sourceTree = "<group>"; };
-		F0000000000000000000A01C /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		F0000000000000000000A01D /* CleanupInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupInsightsView.swift; sourceTree = "<group>"; };
 		F0000000000000000000A01E /* AppHaptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHaptics.swift; sourceTree = "<group>"; };
 		F0000000000000000000A01F /* TutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialView.swift; sourceTree = "<group>"; };
-		F0000000000000000000B003 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text.json.storekit; path = Products.storekit; sourceTree = "<group>"; };
 		F0000000000000000000B004 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F0000000000000000000B001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F0000000000000000000B002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -126,7 +121,6 @@
 				F0000000000000000000B001 /* Assets.xcassets */,
 				VG000000000000000000D001 /* InfoPlist.strings */,
 				F0000000000000000000B002 /* Info.plist */,
-				F0000000000000000000B003 /* Products.storekit */,
 				F0000000000000000000B004 /* PrivacyInfo.xcprivacy */,
 			);
 			path = PhotoCleaner;
@@ -157,7 +151,6 @@
 				F0000000000000000000A015 /* LanguageManager.swift */,
 				F0000000000000000000A016 /* L10n.swift */,
 				F0000000000000000000A019 /* UpdateChecker.swift */,
-				F0000000000000000000A01A /* StoreService.swift */,
 				F0000000000000000000A01B /* UsageTracker.swift */,
 				F0000000000000000000A01E /* AppHaptics.swift */,
 			);
@@ -183,7 +176,6 @@
 				F0000000000000000000A011 /* SettingsView.swift */,
 				F0000000000000000000A013 /* PhotoMetadataSheet.swift */,
 				F0000000000000000000A014 /* PhotoDetailView.swift */,
-				F0000000000000000000A01C /* PaywallView.swift */,
 				F0000000000000000000A01D /* CleanupInsightsView.swift */,
 				F0000000000000000000A01F /* TutorialView.swift */,
 				G000000000000000000000008 /* Components */,
@@ -339,9 +331,7 @@
 				BF000000000000000000A017 /* LivePhotoView.swift in Sources */,
 				BF000000000000000000A018 /* CustomDialog.swift in Sources */,
 				BF000000000000000000A019 /* UpdateChecker.swift in Sources */,
-				BF000000000000000000A01A /* StoreService.swift in Sources */,
 				BF000000000000000000A01B /* UsageTracker.swift in Sources */,
-				BF000000000000000000A01C /* PaywallView.swift in Sources */,
 				BF000000000000000000A01D /* CleanupInsightsView.swift in Sources */,
 				BF000000000000000000A01E /* AppHaptics.swift in Sources */,
 				BF000000000000000000A01F /* TutorialView.swift in Sources */,
@@ -472,7 +462,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 16;
-				DEVELOPMENT_TEAM = 2Q2LMV7BR6;
+				DEVELOPMENT_TEAM = "";
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -498,10 +488,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 16;
-				DEVELOPMENT_TEAM = 2Q2LMV7BR6;
+				DEVELOPMENT_TEAM = "";
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -517,7 +506,6 @@
 				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = app.rollkeep.RollKeep;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "RollKeep App Store";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

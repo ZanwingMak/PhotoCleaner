@@ -51,50 +51,57 @@ struct PermissionView: View {
             )
             .ignoresSafeArea()
 
-            VStack(spacing: 32) {
-                Spacer()
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack(spacing: 32) {
+                        Spacer()
 
-                // 图标
-                Image(systemName: "photo.stack.fill")
-                    .font(.system(size: 72, weight: .light))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.blue, .purple],
-                            startPoint: .top, endPoint: .bottom
-                        )
-                    )
+                        // 图标
+                        Image(systemName: "photo.stack.fill")
+                            .font(.system(size: 72, weight: .light))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.blue, .purple],
+                                    startPoint: .top, endPoint: .bottom
+                                )
+                            )
 
-                VStack(spacing: 12) {
-                    Text(lm.t("整理你的照片库"))
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
-                    Text(lm.t("快速滑动审核每张照片，腾出存储空间。\n所有删除操作都需要你手动确认。"))
-                        .font(.system(size: 16))
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-                }
-
-                Spacer()
-
-                Button {
-                    Task { await library.requestAuthorization() }
-                } label: {
-                    Text(lm.t("允许访问照片"))
-                        .font(.system(size: 17, weight: .semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background {
-                            if #available(iOS 26.0, *) {
-                                Capsule().fill(.clear).glassEffect(.regular.tint(.blue.opacity(0.35)).interactive(), in: .capsule)
-                            } else {
-                                Capsule().fill(Color.blue)
-                            }
+                        VStack(spacing: 12) {
+                            Text(lm.t("整理你的照片库"))
+                                .font(.system(size: 32, weight: .bold, design: .rounded))
+                            Text(lm.t("快速滑动审核每张照片，腾出存储空间。\n所有删除操作都需要你手动确认。"))
+                                .font(.system(size: 16))
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 32)
                         }
-                        .foregroundStyle(.white)
+
+                        Spacer()
+
+                        Button {
+                            Task { await library.requestAuthorization() }
+                        } label: {
+                            Text(lm.t("允许访问照片"))
+                                .font(.system(size: 17, weight: .semibold))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background {
+                                    if #available(iOS 26.0, *) {
+                                        Capsule().fill(.clear).glassEffect(.regular.tint(.blue.opacity(0.35)).interactive(), in: .capsule)
+                                    } else {
+                                        Capsule().fill(Color.blue)
+                                    }
+                                }
+                                .foregroundStyle(.white)
+                        }
+                        .padding(.horizontal, 32)
+                        .padding(.bottom, 32)
+                    }
+                    .frame(maxWidth: 600, minHeight: geometry.size.height)
+                    .frame(maxWidth: .infinity)
                 }
-                .padding(.horizontal, 32)
-                .padding(.bottom, 32)
             }
+
         }
     }
 }

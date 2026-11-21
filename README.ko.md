@@ -1,102 +1,78 @@
-<p align="center">
-  <img src="docs/icon.png" width="128" alt="PhotoCleaner 아이콘" />
-</p>
+<p align="center"><img src="docs/icon.png" width="128" alt="RollKeep" /></p>
 
-<h1 align="center">PhotoCleaner</h1>
+<h1 align="center">RollKeep · PhotoCleaner</h1>
 
-<p align="center"><a href="README.md">English</a> · <a href="README.zh.md">中文</a> · <a href="README.ja.md">日本語</a> · <b>한국어</b></p>
+<p align="center"><a href="README.md">English</a> · <a href="README.zh.md">中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a></p>
 
-> Slidebox 스타일의 iOS 사진 정리 도구. 네이티브 SwiftUI, iOS 26 리퀴드 글래스.
+iPhone, iPad, iPhone Duo용 무료 오픈 소스 사진 정리 앱입니다. 네이티브 SwiftUI로 개발했으며 구독, 앱 내 구매, 사용량 제한이 없습니다.
+
+> RollKeep의 소스 코드, 이슈, 릴리스, 공식 웹사이트는 이 저장소에서만 계속 관리합니다.
 
 ![iOS](https://img.shields.io/badge/iOS-17%2B-black?logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-5-orange?logo=swift)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue)
-![Version](https://img.shields.io/badge/version-1.1.9-success)
+![Version](https://img.shields.io/badge/version-1.2.1-success)
 
 ## 기능
 
-- 📷 시스템 사진 라이브러리 읽기, 스마트 앨범 + 메타데이터로 분류
-- 👉 **스와이프로 검토**: 왼쪽 = 다음 / 오른쪽 = 이전 / 위 = 삭제 대기에 추가
-- 🗑 **삭제 대기 목록** 일괄 확인 + iOS 시스템 삭제 대화상자
-- ⏪ 한 단계 되돌리기
-- 🖼 **사진 브라우저**: 전체 화면, 줌, 좌우 페이지 전환, 즐겨찾기 / 공유 / 사진 앱으로 이동
-- 📊 **메타데이터 시트**: 크기, 파일 크기, 종류, 위치, 재생시간
-- 💡 **스마트 추천**: 6가지 정리 진입점 (오래된 스크린샷 / 용량 차지 / 동영상 / 라이브 사진 / 셀카 / 저해상도 이미지). 홈 가로 카드 + 「더보기」 시트에서 전체 목록 확인
-- 🌗 **5가지 테마**: 시스템 / 다크 / 라이트 / 카라멜 / 쿨
-- 🌐 **4개 언어**: 中文 / English / 日本語 / 한국어
-- ⬆️ **새 버전 감지**: 설정 진입 시 GitHub Releases 를 백그라운드에서 조용히 조회, 새 버전이 있으면 「정보」 섹션에 강조 표시
-- ✨ iOS 26 리퀴드 글래스 + 전용 AppIcon
-- 🔒 100% 기기 내 처리, 업로드 없음
+- 왼쪽으로 다음 사진, 오른쪽으로 이전 사진, 위로 스와이프하여 삭제 대기에 추가합니다.
+- 삭제 대기 목록은 무제한이며 선택을 되돌릴 수 있습니다. 삭제에는 Apple Photos 확인이 필요합니다.
+- 전체 화면 보기, 확대, 즐겨찾기, 공유, 사진 메타데이터를 지원합니다.
+- 스마트 분류, 용량순 정렬, 전체 월별 타임라인으로 정리할 사진을 찾습니다.
+- 기기 내 정리 통계, 예상 확보 공간, 연속 정리 일수, 최근 칠일 추세를 확인합니다.
+- 창 크기에 따라 홈 화면의 열, 사진 그리드, 검토 도구를 조정합니다.
+- 다섯 가지 테마와 14개 언어 옵션을 제공합니다. 지역 언어의 미번역 문구는 영어로 표시합니다.
+- 사진과 메타데이터는 기기에서 처리되며 앱에서 업로드하지 않습니다.
 
-## 스크린샷
+## 빌드 및 실행
 
-<p align="center">
-  <img src="docs/screenshots/01-home.png" width="240" alt="홈 — 스마트 추천, Time Lens, Bento 카테고리" />
-  <img src="docs/screenshots/02-albums.png" width="240" alt="앨범 — 스마트 앨범과 추론된 정리 카테고리" />
-  <img src="docs/screenshots/03-settings.png" width="240" alt="설정 — 테마, 언어, 경험 토글" />
-</p>
-
-> 왼쪽부터 오른쪽: 스마트 추천과 Time Lens가 있는 홈 · 스마트 앨범과 정리 카테고리가 있는 앨범 · 테마, 언어, 경험 토글이 있는 설정.
-
-## 프로젝트 구조
-
-[English README](README.md#project-structure) 참조 (동일).
-
-## 시뮬레이터에서 실행
+Xcode 26 이상과 iOS Simulator 런타임이 필요합니다. 실기기에서는 자신의 서명 팀을 선택하세요. iPhone Duo 검증에는 호환되는 iOS 27 런타임을 사용하세요.
 
 ```bash
-# Xcode 26+ 와 iOS Simulator runtime 필요
+git clone https://github.com/ZanwingMak/PhotoCleaner.git
+cd PhotoCleaner
 open PhotoCleaner.xcodeproj
-# Xcode 에서 ⌘R
 ```
 
 ## 미서명 IPA 빌드
 
+`build/`에 미서명 IPA를 생성합니다. 실기기 설치 전에는 직접 서명해야 합니다.
+
 ```bash
 bash scripts/build-ipa.sh
-# 결과물: build/PhotoCleaner-v<VERSION>.ipa
 ```
 
-## 실기기에 설치 (개발자 계정 없이)
+## 스크린샷
 
-IPA 는 미서명. 다음 중 하나로 무료 Apple ID 로 자체 서명 (인증서 7일 유효):
+<p align="center">
+  <img src="docs/screenshots/04-review.png" width="240" alt="RollKeep swipe review" />
+  <img src="docs/screenshots/02-albums.png" width="240" alt="RollKeep albums" />
+  <img src="docs/screenshots/05-photos.png" width="240" alt="RollKeep photo browser" />
+</p>
 
-### 방법 A: Sideloadly (가장 간단)
-1. https://sideloadly.io 다운로드
-2. `build/PhotoCleaner-v<VERSION>.ipa` 끌어다 놓기
-3. 무료 Apple ID 입력
-4. iPhone: 설정 → 일반 → VPN 및 기기 관리 → 인증서 신뢰
+인터페이스 미리보기입니다. 현재 소스에는 정리 통계와 가변 레이아웃도 포함되어 있습니다.
 
-### 방법 B: AltStore (자동 갱신)
-AltServer 를 백그라운드에서 실행하여 7일 인증서 자동 갱신
+## 프로젝트 구조
 
-### 방법 C: Xcode 직접 서명
-Xcode 에서 프로젝트 열고 Signing → Team 에 무료 Apple ID 선택, ⌘R 로 실기기에 실행
+- `PhotoCleaner/` — SwiftUI app, Photos services, and localizations.
+- `PhotoCleaner.xcodeproj/` — Xcode project.
+- `docs/` — GitHub Pages website, privacy policy, and terms.
+- `scripts/` — Build and icon generation utilities.
 
 ## 개인정보
 
-- 모든 처리는 기기 내. **업로드 전혀 없음**
-- `NSPhotoLibraryUsageDescription` 만 요청
-- 삭제 시 iOS 시스템 대화상자가 표시되며, 앱은 이를 우회할 수 없음
-- 버전 확인은 `api.github.com` 에 단일 GET 요청만 보내며, 표준 User-Agent 외에 개인 정보를 전송하지 않습니다
+사진 접근은 사용자가 허용한 후에만 이루어지며 삭제에는 Apple Photos 확인이 필요합니다. 설정과 통계는 기기에 저장됩니다. GitHub Releases API 업데이트 요청에는 사진이나 사진 메타데이터가 포함되지 않습니다.
 
-## 후원
+## 프로젝트 링크
 
-- [PayPal](https://paypal.me/zanwing)
-- [Buy me a coffee](https://buymeacoffee.com/zanwing)
-- [Wise](https://wise.com/pay/me/zhenyingm1)
-- WeChat 후원 코드와 Alipay QR은 앱의 「설정 → 후원」에서 확인할 수 있습니다.
-
-## 링크
-
-- [공식 웹사이트](https://zanwingmak.github.io/PhotoCleaner-OpenSource/)
-- [개인정보 처리방침](https://zanwingmak.github.io/PhotoCleaner-OpenSource/privacy.html)
-- [이용 약관](https://zanwingmak.github.io/PhotoCleaner-OpenSource/terms.html)
-- [변경 사항 CHANGELOG.md](CHANGELOG.md)
-- [기능 명세 FEATURES.md](FEATURES.md)
-- [테스트 계획 TEST_PLAN.md](TEST_PLAN.md)
-- [Releases](https://github.com/ZanwingMak/PhotoCleaner-OpenSource/releases)
+- [소스 코드](https://github.com/ZanwingMak/PhotoCleaner)
+- [공식 웹사이트](https://zanwingmak.github.io/PhotoCleaner/)
+- [개인정보 처리방침](https://zanwingmak.github.io/PhotoCleaner/privacy.html)
+- [이용 약관](https://zanwingmak.github.io/PhotoCleaner/terms.html)
+- [릴리스](https://github.com/ZanwingMak/PhotoCleaner/releases)
+- [이슈 및 피드백](https://github.com/ZanwingMak/PhotoCleaner/issues)
+- [CHANGELOG](CHANGELOG.md)
 
 ## 라이선스
 
-GPL-3.0-only
+GPL-3.0-only. 모든 기능이 무료이며 자발적 후원은 기능 이용에 영향을 주지 않습니다. [LICENSE](LICENSE)

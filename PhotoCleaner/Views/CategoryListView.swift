@@ -21,7 +21,6 @@ struct CategoryListView: View {
     @EnvironmentObject private var library: PhotoLibraryService
     @EnvironmentObject private var lm: LanguageManager
     @EnvironmentObject private var themeManager: ThemeManager
-    @EnvironmentObject private var store: StoreService
     @EnvironmentObject private var usage: UsageTracker
     @State private var topTab: TopTab = .unsorted
     @State private var tabBarItem: TabBarItem = .organize
@@ -31,48 +30,51 @@ struct CategoryListView: View {
     @State private var showSuggestionList = false
     @State private var showsAllMonthBuckets = false
     @State private var scrollToTopRequest = 0
-    @State private var showPaywall = false
     @State private var showInsights = false
-    @State private var paywallReason: PaywallReason = .upgrade
 
     /// 刷新按钮持续旋转角度
     @State private var refreshSpinAngle: Double = 0
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottom) {
-                backgroundLayer
+            GeometryReader { geometry in
+                ZStack(alignment: .bottom) {
+                    backgroundLayer
 
-                // 顶部固定 header（greeting + segmented）保证两个 tab 位置一致
-                VStack(spacing: 0) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        topGreetingBar
-                        segmentedTabs
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
-                    .padding(.bottom, 10)
-
-                    // 内容区
-                    Group {
-                        switch topTab {
-                        case .unsorted: unsortedScroll
-                        case .albums:   albumsScroll
+                    // 顶部固定 header（greeting + segmented）保证两个 tab 位置一致
+                    VStack(spacing: 0) {
+                        VStack(alignment: .leading, spacing: 14) {
+                            topGreetingBar
+                            segmentedTabs
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
+                        .padding(.bottom, 10)
+                        .frame(maxWidth: 1200)
+                        .frame(maxWidth: .infinity)
+
+                        // 内容区
+                        Group {
+                            switch topTab {
+                            case .unsorted: unsortedScroll(width: geometry.size.width)
+                            case .albums:   albumsScroll
+                            }
+                        }
+                        .transition(.opacity)
                     }
-                    .transition(.opacity)
-                }
 
-                FloatingTabBar(selected: tabBarItem) { item in
-                    handleTabBarTap(item)
-                }
-                .padding(.horizontal, 18)
-                .padding(.bottom, 8)
+                    FloatingTabBar(selected: tabBarItem) { item in
+                        handleTabBarTap(item)
+                    }
+                    .padding(.horizontal, 18)
+                    .frame(maxWidth: 560)
+                    .padding(.bottom, 8)
 
-                if topTab == .unsorted && showsAllMonthBuckets {
-                    backToTopButton
-                        .padding(.trailing, 22)
-                        .padding(.bottom, 94)
+                    if topTab == .unsorted && showsAllMonthBuckets {
+                        backToTopButton
+                            .padding(.trailing, 22)
+                            .padding(.bottom, 94)
+                    }
                 }
             }
             .toast($toast)
@@ -89,9 +91,6 @@ struct CategoryListView: View {
             }
             .sheet(isPresented: $showSuggestionList) {
                 SmartSuggestionListSheet()
-            }
-            .sheet(isPresented: $showPaywall) {
-                PaywallView(reason: paywallReason)
             }
             .sheet(isPresented: $showInsights) {
                 CleanupInsightsView()
@@ -130,23 +129,36 @@ struct CategoryListView: View {
 
     // MARK: - 「整理」滚动页
 
-    private var unsortedScroll: some View {
-        ScrollViewReader { proxy in
+    /// 宽窗口并排展示整理入口与时间线，窄窗口按顺序排列。
+    private func unsortedScroll(width: CGFloat) -> some View {
+        let isWide = width >= 640
+        let layout = isWide
+            ? AnyLayout(HStackLayout(alignment: .top, spacing: 28))
+            : AnyLayout(VStackLayout(alignment: .leading, spacing: 24))
+        return ScrollViewReader { proxy in
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 24) {
                     Color.clear
                         .frame(height: 0)
                         .id(HomeScrollAnchor.top)
-                    heroStorageCard
-                    cleanupProgressCard
-                    smartSuggestionRow
-                    quickPickRow
-                    bentoCategoryGrid
-                    monthlyTimeline
+                    layout {
+                        VStack(alignment: .leading, spacing: 24) {
+                            heroStorageCard
+                            cleanupProgressCard
+                            smartSuggestionRow
+                            quickPickRow
+                            bentoCategoryGrid
+                        }
+                        .frame(maxWidth: .infinity)
+                        monthlyTimeline
+                            .frame(width: isWide ? min(360, width * 0.32) : nil)
+                    }
                     Color.clear.frame(height: 120)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 4)
+                .frame(maxWidth: 1200)
+                .frame(maxWidth: .infinity)
             }
             .onChange(of: scrollToTopRequest) { _, _ in
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.86)) {
@@ -164,21 +176,19 @@ struct CategoryListView: View {
 
     private var albumsScroll: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 24)], spacing: 0) {
                 ForEach(albumRows, id: \.id) { category in
                     NavigationLink(value: category) {
                         AlbumRow(category: category, count: library.categoryCounts[category.id])
                     }
                     .buttonStyle(.plain)
-                    Rectangle()
-                        .fill(Color.primary.opacity(0.05))
-                        .frame(height: 1)
                 }
-
-                Color.clear.frame(height: 120)
             }
+            .padding(.bottom, 120)
             .padding(.horizontal, 20)
             .padding(.top, 8)
+            .frame(maxWidth: 1200)
+            .frame(maxWidth: .infinity)
         }
         .refreshable {
             await library.refreshCategoryCounts()
@@ -384,12 +394,7 @@ struct CategoryListView: View {
     private var cleanupProgressCard: some View {
         Button {
             AppHaptics.impact(.soft)
-            if store.isPro {
-                showInsights = true
-            } else {
-                paywallReason = .insightsLocked
-                showPaywall = true
-            }
+            showInsights = true
         } label: {
             HStack(spacing: 14) {
                 ZStack {
@@ -406,14 +411,6 @@ struct CategoryListView: View {
                         Text(lm.t("整理进度"))
                             .font(.headline)
                             .foregroundStyle(AppPalette.textPrimary(for: themeManager.current))
-                        if !store.isPro {
-                            Text(lm.t("会员"))
-                                .font(.caption2.weight(.heavy))
-                                .foregroundStyle(AppPalette.brand)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Capsule().fill(AppPalette.brand.opacity(0.14)))
-                        }
                     }
                     Text(String(format: lm.t("连续 %d 天 · 已审核 %d 张"),
                                 usage.currentStreak,
@@ -446,7 +443,7 @@ struct CategoryListView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityHint(store.isPro ? lm.t("查看最近整理趋势") : lm.t("升级会员查看完整趋势"))
+        .accessibilityHint(lm.t("查看最近整理趋势"))
     }
 
     /// 估算可释放空间：按建议清理照片平均 1.5MB/张估算
@@ -638,19 +635,14 @@ struct CategoryListView: View {
                 if hasMoreMonthBuckets {
                     Button {
                         AppHaptics.impact(.soft)
-                        if store.isPro {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                                showAllMonthBuckets()
-                            }
-                        } else {
-                            paywallReason = .fullHistoryLocked
-                            showPaywall = true
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                            showAllMonthBuckets()
                         }
                     } label: {
                         HStack(spacing: 6) {
-                            Text(lm.t(store.isPro ? "显示全部时间线" : "会员解锁完整时间线"))
+                            Text(lm.t("显示全部时间线"))
                                 .font(.system(size: 13, weight: .semibold))
-                            Image(systemName: store.isPro ? "chevron.down" : "lock.fill")
+                            Image(systemName: "chevron.down")
                                 .font(.system(size: 11, weight: .bold))
                         }
                         .foregroundStyle(AppPalette.brand)
@@ -666,11 +658,10 @@ struct CategoryListView: View {
 
     /// 首页当前展示的月份分桶，默认只保留最近一年的月份
     private var displayedMonthBuckets: [MonthBucket] {
-        if showsAllMonthBuckets && store.isPro {
+        if showsAllMonthBuckets {
             return library.monthBuckets
         }
-        let monthLimit = store.isPro ? 12 : 6
-        return library.monthBuckets.filter { isInRecentMonths($0, count: monthLimit) }
+        return library.monthBuckets.filter { isInRecentMonths($0, count: 12) }
     }
 
     /// 是否还有未展示的月份分桶

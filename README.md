@@ -1,134 +1,78 @@
-<p align="center">
-  <img src="docs/icon.png" width="128" alt="PhotoCleaner icon" />
-</p>
+<p align="center"><img src="docs/icon.png" width="128" alt="RollKeep" /></p>
 
-<h1 align="center">PhotoCleaner</h1>
+<h1 align="center">RollKeep · PhotoCleaner</h1>
 
-<p align="center"><b>English</b> · <a href="README.zh.md">中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a></p>
+<p align="center"><a href="README.md">English</a> · <a href="README.zh.md">中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a></p>
 
-> Slidebox-like iOS photo organizer. Native SwiftUI with iOS 26 Liquid Glass.
+Free, open-source photo organization for iPhone, iPad, and iPhone Duo, built with native SwiftUI. All features are available without subscriptions, in-app purchases, or usage limits.
+
+> This is the only maintained repository for RollKeep. Source code, issues, releases, and the official website are maintained here.
 
 ![iOS](https://img.shields.io/badge/iOS-17%2B-black?logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-5-orange?logo=swift)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue)
-![Version](https://img.shields.io/badge/version-1.1.9-success)
+![Version](https://img.shields.io/badge/version-1.2.1-success)
 
 ## Features
 
-- 📷 Reads system photo library, classified by smart albums + metadata inference
-- 👉 **Swipe to review**: left = next, right = previous, up = mark delete
-- 🗑 **Pending delete list** with batch confirmation + native iOS delete dialog
-- ⏪ Single-step undo
-- 🖼 **Photo browser**: full-screen view, zoom, swipe pagination, favorite / share / open in Photos.app
-- 📊 **Metadata sheet**: dimensions, file size, type, location, duration
-- 💡 **Smart Picks**: six cleanup entry points (old screenshots / storage hogs / videos / live photos / selfies / low-res images), horizontal cards on home + a "More" sheet for the full list
-- 🌗 **5 themes**: System / Dark / Light / Caramel / Cool
-- 🌐 **4 languages**: 中文 / English / 日本語 / 한국어
-- ⬆️ **Update check**: silently queries GitHub Releases on entering Settings; highlights a chip in the About section when a newer version is published
-- ✨ iOS 26 Liquid Glass + custom AppIcon
-- 🔒 100% on-device, zero uploads
+- Swipe left for the next photo, right for the previous photo, and up to mark a photo for deletion.
+- Review an unlimited pending list, undo a deletion choice, and confirm deletion through Apple Photos.
+- Browse photos full screen, zoom, favorite, share, and inspect photo metadata.
+- Find cleanup candidates through smart categories, largest-first sorting, and the complete monthly timeline.
+- Track local cleanup totals, storage estimates, streaks, and seven-day trends.
+- Use adaptive home columns, thumbnail grids, and review controls as the window size changes.
+- Choose any of five themes and 14 language options. Missing regional translations fall back to English.
+- Process the photo library on the device; photos and metadata are never uploaded by the app.
+
+## Build and run
+
+Use Xcode 26 or later with an installed iOS Simulator runtime. For a physical device, select your own signing team in Xcode. Use a compatible iOS 27 simulator runtime to verify iPhone Duo layouts.
+
+```bash
+git clone https://github.com/ZanwingMak/PhotoCleaner.git
+cd PhotoCleaner
+open PhotoCleaner.xcodeproj
+```
+
+## Build an unsigned IPA
+
+The build script writes an unsigned IPA to `build/`; installation on a device requires your own signing.
+
+```bash
+bash scripts/build-ipa.sh
+```
 
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/01-home.png" width="240" alt="Home — Smart Picks, Time Lens, Bento categories" />
-  <img src="docs/screenshots/02-albums.png" width="240" alt="Albums — smart albums and inferred cleanup categories" />
-  <img src="docs/screenshots/03-settings.png" width="240" alt="Settings — themes, languages, and experience toggles" />
+  <img src="docs/screenshots/04-review.png" width="240" alt="RollKeep swipe review" />
+  <img src="docs/screenshots/02-albums.png" width="240" alt="RollKeep albums" />
+  <img src="docs/screenshots/05-photos.png" width="240" alt="RollKeep photo browser" />
 </p>
 
-> Left → Right: home screen with Smart Picks and Time Lens · albums list with smart albums and cleanup categories · settings page with themes, languages, and experience toggles.
+Interface previews; current source also includes cleanup insights and adaptive layouts.
 
-## Project Structure
+## Project structure
 
-```
-PhotoCleaner/
-├── PhotoCleaner.xcodeproj
-├── PhotoCleaner/
-│   ├── PhotoCleanerApp.swift          App entry + RootShell (injects system colorScheme)
-│   ├── Info.plist                     Permission declarations
-│   ├── Models/PhotoCategory.swift     Category enum
-│   ├── Services/
-│   │   ├── PhotoLibraryService.swift  PhotosKit wrapper
-│   │   ├── PhotoClassifier.swift      Metadata inference
-│   │   ├── ThemeManager.swift         Theme persistence
-│   │   ├── LanguageManager.swift      Language persistence
-│   │   ├── L10n.swift                 Translation dictionary
-│   │   └── UpdateChecker.swift        GitHub Releases version check
-│   ├── ViewModels/
-│   └── Views/
-│       ├── RootView.swift             Permission routing
-│       ├── CategoryListView.swift     Home (incl. Smart Picks "More" sheet)
-│       ├── SwipeReviewView.swift      Swipe review
-│       ├── PendingDeletionView.swift  Pending delete list
-│       ├── PhotosBrowserView.swift    Photo browser
-│       ├── PhotoDetailView.swift      Full-screen viewer
-│       ├── PhotoMetadataSheet.swift   Metadata detail
-│       ├── SettingsView.swift         Settings
-│       └── Components/                Shared UI
-├── scripts/
-│   ├── build-ipa.sh                   One-shot unsigned IPA build
-│   └── generate-icon.swift            AppIcon generator
-├── CHANGELOG.md                       Version history
-├── FEATURES.md                        Feature spec
-├── TEST_PLAN.md                       Test cases
-└── README.md                          You are here
-```
-
-## Run in Simulator
-
-```bash
-# Requires Xcode 26+ and an iOS Simulator runtime
-open PhotoCleaner.xcodeproj
-# Press ⌘R in Xcode
-```
-
-## Build Unsigned IPA
-
-```bash
-bash scripts/build-ipa.sh
-# Output: build/PhotoCleaner-v<VERSION>.ipa
-```
-
-## Install on a Device (No Developer Account)
-
-The IPA is unsigned. Pick one of these to self-sign with a free Apple ID (cert valid 7 days):
-
-### Option A: Sideloadly (Easiest)
-1. Download https://sideloadly.io
-2. Drag `build/PhotoCleaner-v<VERSION>.ipa` into it
-3. Sign in with a free Apple ID
-4. On iPhone: Settings → General → VPN & Device Management → trust the certificate
-
-### Option B: AltStore (Auto-Renew)
-Run AltServer in the background to keep the 7-day cert refreshed automatically.
-
-### Option C: Xcode Direct Sign
-Open the project in Xcode, set Signing → Team to your free Apple ID, ⌘R to your device.
+- `PhotoCleaner/` — SwiftUI app, Photos services, and localizations.
+- `PhotoCleaner.xcodeproj/` — Xcode project.
+- `docs/` — GitHub Pages website, privacy policy, and terms.
+- `scripts/` — Build and icon generation utilities.
 
 ## Privacy
 
-- All processing happens locally. **Zero network uploads.**
-- Only `NSPhotoLibraryUsageDescription` is requested
-- Deletion always triggers the native iOS confirmation dialog; the app cannot bypass it
-- The update check fires a single GET to `api.github.com`. It sends only the standard User-Agent and never includes any personal data.
+Photo access is requested when you choose to grant it. Deletion requires Apple Photos confirmation. Preferences and cleanup statistics stay on the device. The app can query the public GitHub Releases API for version information; this request contains no photos or photo metadata.
 
-## Sponsor
+## Project links
 
-- [PayPal](https://paypal.me/zanwing)
-- [Buy me a coffee](https://buymeacoffee.com/zanwing)
-- [Wise](https://wise.com/pay/me/zhenyingm1)
-- WeChat Reward Code and Alipay QR are available in Settings → Sponsor.
-
-## Links
-
-- [Official Website](https://zanwingmak.github.io/PhotoCleaner-OpenSource/)
-- [Privacy Policy](https://zanwingmak.github.io/PhotoCleaner-OpenSource/privacy.html)
-- [Terms of Use](https://zanwingmak.github.io/PhotoCleaner-OpenSource/terms.html)
+- [Source code](https://github.com/ZanwingMak/PhotoCleaner)
+- [Official website](https://zanwingmak.github.io/PhotoCleaner/)
+- [Privacy policy](https://zanwingmak.github.io/PhotoCleaner/privacy.html)
+- [Terms of use](https://zanwingmak.github.io/PhotoCleaner/terms.html)
+- [Releases](https://github.com/ZanwingMak/PhotoCleaner/releases)
+- [Issues and feedback](https://github.com/ZanwingMak/PhotoCleaner/issues)
 - [CHANGELOG](CHANGELOG.md)
-- [FEATURES](FEATURES.md)
-- [TEST PLAN](TEST_PLAN.md)
-- [Releases](https://github.com/ZanwingMak/PhotoCleaner-OpenSource/releases)
 
 ## License
 
-GPL-3.0-only
+GPL-3.0-only. All features are free; optional donations do not unlock features. [LICENSE](LICENSE)

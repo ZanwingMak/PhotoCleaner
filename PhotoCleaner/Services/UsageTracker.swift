@@ -1,19 +1,10 @@
 //
 //  UsageTracker.swift
-//  免费版限额 + 本地整理统计
-//  Pro 用户全部无限；Free 用户在以下任一规则触发时弹付费墙
+//  本地整理统计，不限制审核或待删除数量
 //
 
 import Foundation
 import SwiftUI
-
-/// 集中维护免费版上限常量
-enum FreeLimits {
-    /// 待删除列表同时持有的最大照片数
-    static let pendingMax = 50
-    /// 每天可"审核"的最大张数（任何一次有效滑动均计入）
-    static let dailyReviewMax = 300
-}
 
 /// 单日整理统计，仅保存在本机
 struct CleanupDayStat: Codable, Identifiable, Sendable {
@@ -55,6 +46,7 @@ final class UsageTracker: ObservableObject {
     /// 当前连续整理天数；今天尚未整理时允许从昨天延续
     var currentStreak: Int { calculateCurrentStreak() }
 
+    /// 恢复本机统计并迁移旧的当日计数。
     init() {
         loadStats()
         rolloverIfNeeded()
@@ -62,25 +54,14 @@ final class UsageTracker: ObservableObject {
         migrateTodayCountIfNeeded()
     }
 
-    /// 是否还能继续审核（Pro 永远 true）
-    func canReviewMore(isPro: Bool) -> Bool {
-        if isPro { return true }
+    /// 记录一次审核，仅用于统计，不设每日额度。
+    func recordReview() {
         rolloverIfNeeded()
-        return storedCount < FreeLimits.dailyReviewMax
-    }
-
-    /// 记录一次审核（任一方向的滑动）；返回是否仍在允许范围内
-    @discardableResult
-    func recordReview(isPro: Bool) -> Bool {
-        rolloverIfNeeded()
-        if !isPro {
-            storedCount += 1
-            todayReviewedCount = storedCount
-        }
+        storedCount += 1
+        todayReviewedCount = storedCount
         updateTodayStat { stat in
             stat.reviewedCount += 1
         }
-        return isPro || storedCount <= FreeLimits.dailyReviewMax
     }
 
     /// 记录一次确认删除及实际释放空间
@@ -90,13 +71,6 @@ final class UsageTracker: ObservableObject {
             stat.deletedCount += count
             stat.freedBytes += max(0, freedBytes)
         }
-    }
-
-    /// 今日剩余可审核数（仅用于 UI 展示）
-    func remainingToday(isPro: Bool) -> Int {
-        if isPro { return Int.max }
-        rolloverIfNeeded()
-        return max(0, FreeLimits.dailyReviewMax - storedCount)
     }
 
     /// 跨日时把计数归零

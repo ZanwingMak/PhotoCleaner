@@ -115,15 +115,18 @@ final class LanguageManager: ObservableObject {
         return nil
     }
 
+    /// 保存应用语言并通知界面刷新。
     func set(_ language: AppLanguage) {
         raw = language.rawValue
         objectWillChange.send()
     }
 
-    /// 翻译方法：区域语言缺失时回退英语，避免出现中文混排
+    /// 中文直接使用原文，其他语言缺失翻译时回退英语。
     func t(_ key: String) -> String {
-        L10nRegional.dict[effective]?[key]
-            ?? L10n.dict[key]?[effective]
+        let language = effective
+        if language == .zh { return key }
+        return L10nRegional.dict[language]?[key]
+            ?? L10n.dict[key]?[language]
             ?? L10n.dict[key]?[.en]
             ?? key
     }

@@ -45,11 +45,6 @@ enum AppTheme: String, CaseIterable, Identifiable {
         }
     }
 
-    /// 焦糖暖与冷色调属于会员主题，系统/深色/浅色保持免费
-    var isPremium: Bool {
-        self == .warm || self == .cool
-    }
-
     /// 转换为 SwiftUI ColorScheme（nil 表示跟随系统）
     var colorScheme: ColorScheme? {
         switch self {
@@ -70,6 +65,7 @@ final class ThemeManager: ObservableObject {
         set { raw = newValue.rawValue; objectWillChange.send() }
     }
 
+    /// 切换主题并持久化选择。
     func set(_ theme: AppTheme) {
         current = theme
     }

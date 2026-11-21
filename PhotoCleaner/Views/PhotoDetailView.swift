@@ -15,6 +15,8 @@ struct PhotoDetailView: View {
 
     @State private var currentIndex: Int = 0
     @State private var showMetadata = false
+    @State private var sharedImage: UIImage?
+    @State private var showShareSheet = false
     @State private var showChrome = true   // 顶部/底部 UI 是否显示
     @State private var isFavorite = false  // 当前照片是否收藏（独立 state，避免 PHAsset 不刷新）
     @State private var assetsRefreshTick = 0 // 用于强制刷新 PHAsset 状态
@@ -68,6 +70,9 @@ struct PhotoDetailView: View {
         }
         .onChange(of: currentIndex) { _, _ in
             refreshFavoriteState()
+        }
+        .sheet(isPresented: $showShareSheet) {
+            if let sharedImage { PhotoShareSheet(image: sharedImage) }
         }
         .sheet(isPresented: $showMetadata) {
             if let asset = currentAsset {
@@ -213,28 +218,26 @@ struct PhotoDetailView: View {
         }
     }
 
+    /// 加载原图后通过当前视图呈现系统分享面板，兼容 iPad 和可调整窗口。
     private func share() {
         guard let asset = currentAsset else { return }
         let options = PHImageRequestOptions()
-        options.isSynchronous = false
         options.deliveryMode = .highQualityFormat
-        PHCachingImageManager().requestImage(for: asset,
-                                              targetSize: PHImageManagerMaximumSize,
-                                              contentMode: .aspectFit,
-                                              options: options) { image, _ in
-            guard let image else { return }
+        options.isNetworkAccessAllowed = true
+        PHCachingImageManager().requestImage(
+            for: asset, targetSize: PHImageManagerMaximumSize,
+            contentMode: .aspectFit, options: options
+        ) { image, info in
+            guard let image,
+                  (info?[PHImageResultIsDegradedKey] as? Bool) != true else { return }
             DispatchQueue.main.async {
-                let av = UIActivityViewController(activityItems: [image], applicationActivities: nil)
-                if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-                   let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController {
-                    var top = root
-                    while let presented = top.presentedViewController { top = presented }
-                    top.present(av, animated: true)
-                }
+                sharedImage = image
+                showShareSheet = true
             }
         }
     }
 
+    /// 按当前语言格式化照片日期。
     private func formattedDate(_ date: Date?) -> String {
         guard let date else { return "" }
         let f = DateFormatter()
@@ -250,6 +253,7 @@ private struct ZoomablePhoto: View {
     @EnvironmentObject private var library: PhotoLibraryService
 
     @State private var image: UIImage?
+    @Environment(\.displayScale) private var displayScale
     @State private var livePhoto: PHLivePhoto?
     @State private var reqID: PHImageRequestID?
     @State private var liveReqID: PHImageRequestID?
@@ -323,9 +327,15 @@ private struct ZoomablePhoto: View {
                 }
             }
             .frame(width: geo.size.width, height: geo.size.height)
+            .onChange(of: geo.size) { _, _ in
+                scale = 1
+                lastScale = 1
+                offset = .zero
+                lastOffset = .zero
+            }
         }
         .onAppear {
-            let s = UIScreen.main.scale
+            let s = displayScale
             let size = CGSize(width: 1200 * s, height: 1200 * s)
             reqID = library.loadImage(for: asset, targetSize: size) { img in
                 image = img
@@ -342,4 +352,17 @@ private struct ZoomablePhoto: View {
             if let id = liveReqID { library.cancelImageRequest(id) }
         }
     }
+}
+
+/// 由 SwiftUI 管理分享面板的呈现位置与生命周期。
+struct PhotoShareSheet: UIViewControllerRepresentable {
+    let image: UIImage
+
+    /// 创建系统分享控制器；交由所在 sheet 适配当前设备。
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: [image], applicationActivities: nil)
+    }
+
+    /// 图片在呈现前确定，无需额外更新控制器。
+    func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
 }

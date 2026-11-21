@@ -93,48 +93,53 @@ struct TutorialView: View {
         }
         .padding(.horizontal, 24)
         .padding(.top, 8)
+        .frame(maxWidth: 680)
     }
 
     /// 构建单页教程内容，保持各步骤的布局与无障碍阅读顺序一致。
     private func tutorialPage(_ page: TutorialPage) -> some View {
-        VStack(spacing: 28) {
-            Spacer(minLength: 24)
+        ScrollView {
+            VStack(spacing: 28) {
+                Spacer(minLength: 24)
 
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: page.colors,
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: page.colors,
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                         )
-                    )
-                    .frame(width: 168, height: 168)
-                    .shadow(color: page.colors[0].opacity(0.28), radius: 28, y: 16)
+                        .frame(width: 168, height: 168)
+                        .shadow(color: page.colors[0].opacity(0.28), radius: 28, y: 16)
 
-                Image(systemName: page.symbol)
-                    .font(.system(size: 68, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .accessibilityHidden(true)
+                    Image(systemName: page.symbol)
+                        .font(.system(size: 68, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .accessibilityHidden(true)
+                }
+
+                VStack(spacing: 14) {
+                    Text(page.title)
+                        .font(.system(.title, design: .rounded, weight: .bold))
+                        .foregroundStyle(AppPalette.textPrimary(for: themeManager.current))
+                        .multilineTextAlignment(.center)
+
+                    Text(page.message)
+                        .font(.body)
+                        .foregroundStyle(AppPalette.textSecondary(for: themeManager.current))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                        .padding(.horizontal, 24)
+                }
+
+                Spacer(minLength: 24)
             }
-
-            VStack(spacing: 14) {
-                Text(page.title)
-                    .font(.system(.title, design: .rounded, weight: .bold))
-                    .foregroundStyle(AppPalette.textPrimary(for: themeManager.current))
-                    .multilineTextAlignment(.center)
-
-                Text(page.message)
-                    .font(.body)
-                    .foregroundStyle(AppPalette.textSecondary(for: themeManager.current))
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-                    .padding(.horizontal, 24)
-            }
-
-            Spacer(minLength: 24)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: 680)
+            .frame(maxWidth: .infinity)
         }
-        .padding(.horizontal, 24)
     }
 
     private var footer: some View {
@@ -167,6 +172,7 @@ struct TutorialView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 28)
+        .frame(maxWidth: 680)
     }
 
     /// 推进到下一页，最后一页完成教程并交由调用方关闭。

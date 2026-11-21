@@ -28,6 +28,8 @@ struct CleanupInsightsView: View {
                         Color.clear.frame(height: 24)
                     }
                     .padding(.horizontal, 20)
+                    .frame(maxWidth: 720)
+                    .frame(maxWidth: .infinity)
                     .padding(.top, 12)
                 }
             }
