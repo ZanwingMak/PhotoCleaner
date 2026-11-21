@@ -17,7 +17,12 @@ enum ThumbnailCache {
         return c
     }()
 
-    /// 从缓存读取指定 localIdentifier 的预览图
+    /// 以资产和修改时间共同标识预览，编辑后不复用旧画面。
+    static func key(for asset: PHAsset) -> String {
+        "\(asset.localIdentifier)-\(asset.modificationDate?.timeIntervalSince1970 ?? 0)"
+    }
+
+    /// 从缓存读取指定版本资产的预览图
     static func get(_ id: String) -> UIImage? {
         shared.object(forKey: id as NSString)
     }
@@ -37,11 +42,12 @@ struct PhotoCardView: View {
 
     @State private var image: UIImage?
     @State private var imageRequestID: PHImageRequestID?
+    @State private var generation = UUID()
 
     /// init 时立即从缓存取 image，避免重建 view 时闪 Loading
     init(asset: PHAsset) {
         self.asset = asset
-        _image = State(initialValue: ThumbnailCache.get(asset.localIdentifier))
+        _image = State(initialValue: ThumbnailCache.get(ThumbnailCache.key(for: asset)))
     }
 
     var body: some View {
@@ -70,6 +76,10 @@ struct PhotoCardView: View {
             // 已去掉边框 strokeBorder 和外阴影 shadow（防止深色背景的"画框感"）
             .onAppear { load(targetSize: geo.size) }
             .onChange(of: geo.size) { _, size in load(targetSize: size) }
+            .onChange(of: asset.modificationDate) { _, _ in
+                image = nil
+                load(targetSize: geo.size)
+            }
             .onDisappear { cancelLoad() }
         }
     }
@@ -85,9 +95,10 @@ struct PhotoCardView: View {
         let cachedSide = image.map { max($0.size.width, $0.size.height) * $0.scale } ?? 0
         if cachedSide < requiredSide {
             cancelLoad()
+            let token = generation
             imageRequestID = library.loadImage(for: asset, targetSize: target) { img in
-                guard let img else { return }
-                ThumbnailCache.set(asset.localIdentifier, img)
+                guard generation == token, let img else { return }
+                ThumbnailCache.set(ThumbnailCache.key(for: asset), img)
                 self.image = img // 静默赋值，无 withAnimation 避免闪烁
             }
         }
@@ -95,6 +106,8 @@ struct PhotoCardView: View {
 
     /// 取消当前卡片未完成的图片请求
     private func cancelLoad() {
+        generation = UUID()
         if let id = imageRequestID { library.cancelImageRequest(id) }
+        imageRequestID = nil
     }
 }
