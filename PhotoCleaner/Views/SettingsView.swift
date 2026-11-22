@@ -520,7 +520,7 @@ struct SettingsView: View {
             Image(systemName: "lock.fill")
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(AppPalette.textTertiary(for: theme))
-            Text(lm.t("RollKeep 在本地处理你的所有照片\n绝不上传任何数据"))
+            Text(lm.t("RollKeep 在本地分析照片库\n不会向开发者上传照片或照片元数据"))
                 .font(.system(size: 11))
                 .foregroundStyle(AppPalette.textTertiary(for: theme))
                 .multilineTextAlignment(.center)

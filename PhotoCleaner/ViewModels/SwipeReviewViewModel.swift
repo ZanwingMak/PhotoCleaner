@@ -54,9 +54,13 @@ final class SwipeReviewViewModel: ObservableObject {
         let available = Set(assets.map(\.localIdentifier))
         reviewedAssetIDs = draft.reviewedIDs.intersection(available)
         sessionReviewedCount = reviewedAssetIDs.count
-        let pending = Set(draft.pendingIDs)
-        pendingDeletion = assets.filter { pending.contains($0.localIdentifier) }
+        let indexed = Dictionary(uniqueKeysWithValues: assets.enumerated().map { ($0.element.localIdentifier, ($0.offset, $0.element)) })
+        pendingDeletion = draft.pendingIDs.compactMap { indexed[$0]?.1 }
         pendingAssetIDs = Set(pendingDeletion.map(\.localIdentifier))
+        deleteHistory = draft.pendingIDs.compactMap { id in
+            guard let (index, asset) = indexed[id] else { return nil }
+            return SwipeRecord(asset: asset, fromIndex: index)
+        }
         if let id = draft.currentID, let index = assets.firstIndex(where: { $0.localIdentifier == id }) {
             currentIndex = index
         } else {
@@ -69,9 +73,10 @@ final class SwipeReviewViewModel: ObservableObject {
         let currentID = currentAsset?.localIdentifier
         let completed = !hasMore
         let available = Set(updated.map(\.localIdentifier))
-        let pending = Set(pendingDeletion.map(\.localIdentifier))
+        let lookup = Dictionary(uniqueKeysWithValues: updated.map { ($0.localIdentifier, $0) })
+        let pendingIDs = pendingDeletion.map(\.localIdentifier)
         assets = updated
-        pendingDeletion = updated.filter { pending.contains($0.localIdentifier) }
+        pendingDeletion = pendingIDs.compactMap { lookup[$0] }
         pendingAssetIDs = Set(pendingDeletion.map(\.localIdentifier))
         deleteHistory.removeAll { !available.contains($0.asset.localIdentifier) }
         reviewedAssetIDs.formIntersection(available)

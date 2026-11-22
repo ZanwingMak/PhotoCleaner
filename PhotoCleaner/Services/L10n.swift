@@ -232,10 +232,10 @@ enum L10n {
         "查看更新": [.en: "Tap to view release", .ja: "リリースを見る", .ko: "릴리스 보기"],
 
         // 隐私
-        "RollKeep 在本地处理你的所有照片\n绝不上传任何数据": [
-            .en: "RollKeep handles all photos on-device.\nNothing is uploaded.",
-            .ja: "RollKeep はすべて端末内で処理\nアップロードは一切しません",
-            .ko: "RollKeep는 모든 사진을 기기에서 처리\n업로드 전혀 없음"
+        "RollKeep 在本地分析照片库\n不会向开发者上传照片或照片元数据": [
+            .en: "Photo analysis stays on your device.\nNo photos or photo metadata are uploaded to the developer.",
+            .ja: "写真ライブラリの解析は端末内で行います。\n写真や写真メタデータを開発者に送信しません。",
+            .ko: "사진 보관함 분석은 기기에서 이루어집니다.\n사진이나 사진 메타데이터를 개발자에게 전송하지 않습니다."
         ],
 
         // 权限页
