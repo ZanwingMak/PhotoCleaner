@@ -41,6 +41,12 @@ enum L10n {
         "每次赞助均为一次性消耗型购买，可以重复支持；不包含需要恢复的功能权益。": [.en: "Each contribution is a one-time consumable purchase and can be repeated. There are no feature entitlements to restore.", .ja: "支援は繰り返し可能な一回限りの消耗型購入です。復元が必要な機能の権利は含まれません。", .ko: "후원은 반복 가능한 일회성 소모성 구매입니다. 복원할 기능 이용 권한은 포함되지 않습니다."],
         "管理历史订阅": [.en: "Manage previous subscriptions", .ja: "以前のサブスクリプションを管理", .ko: "이전 구독 관리"],
 
+        "当前仅可访问部分照片": [.en: "Limited Photos access", .ja: "一部の写真へのアクセス", .ko: "일부 사진만 접근 가능"],
+        "仅显示你允许访问的照片和视频，可随时调整选择。": [.en: "Only the photos and videos you allow are shown. You can change your selection anytime.", .ja: "許可した写真と動画だけを表示します。選択はいつでも変更できます。", .ko: "접근을 허용한 사진과 동영상만 표시합니다. 언제든 선택을 변경할 수 있습니다."],
+        "管理可访问的照片": [.en: "Manage accessible photos", .ja: "アクセスできる写真を管理", .ko: "접근 가능한 사진 관리"],
+        "保存并退出": [.en: "Save and leave", .ja: "保存して終了", .ko: "저장하고 나가기"],
+        "可以保存当前进度稍后继续，或放弃待删除选择。": [.en: "Save your progress to continue later, or discard your pending deletion choices.", .ja: "進捗を保存して後で続けるか、削除予定の選択を破棄できます。", .ko: "진행 상황을 저장하고 나중에 계속하거나 삭제 대기 선택을 취소할 수 있습니다."],
+
         // 通用
         "RollKeep": [.zh: "RollKeep", .en: "RollKeep", .ja: "RollKeep", .ko: "RollKeep"],
         "整理你的照片库，腾出存储空间": [.en: "Tidy your photo library, free up space", .ja: "写真ライブラリを整理して空き容量を確保", .ko: "사진 라이브러리 정리, 저장 공간 확보"],

@@ -53,6 +53,14 @@ struct CategoryListView: View {
                         .frame(maxWidth: 1200)
                         .frame(maxWidth: .infinity)
 
+                        if library.authorizationStatus == .limited {
+                            LimitedPhotoAccessNotice()
+                                .padding(.horizontal, 20)
+                                .padding(.bottom, 10)
+                                .frame(maxWidth: 1200)
+                                .frame(maxWidth: .infinity)
+                        }
+
                         // 内容区
                         Group {
                             switch topTab {

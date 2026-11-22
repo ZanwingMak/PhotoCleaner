@@ -85,14 +85,15 @@ final class PhotoLibraryService: NSObject, ObservableObject, PHPhotoLibraryChang
             categoryCounts = [:]
             monthBuckets = []
             ThumbnailCache.shared.removeAllObjects()
+            PhotoClassifier.clearSizeCache()
+            imageManager.stopCachingImagesForAllAssets()
         }
     }
 
     /// 请求照片库授权并同步到页面状态
     func requestAuthorization() async {
-        let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
-        self.authorizationStatus = status
-        updateObservation()
+        _ = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
+        refreshAuthorizationStatus()
     }
 
     /// 主动同步系统授权状态（用于 app 重新激活时刷新）
@@ -101,7 +102,7 @@ final class PhotoLibraryService: NSObject, ObservableObject, PHPhotoLibraryChang
         let changed = status != authorizationStatus
         authorizationStatus = status
         updateObservation()
-        if changed { revision += 1 }
+        if changed { scheduleRefresh() }
     }
 
     /// 当前授权是否允许读取照片库
@@ -190,8 +191,14 @@ final class PhotoLibraryService: NSObject, ObservableObject, PHPhotoLibraryChang
         defer { isLoading = false }
         repeat {
             refreshRequested = false
+            let requestedRevision = revision
             let snapshot = await Self.buildCategorySnapshot()
             guard hasAccess else { return }
+            // 扫描期间权限或图库已变化时重新扫描，禁止旧结果回写。
+            if revision != requestedRevision {
+                refreshRequested = true
+                continue
+            }
             categoryCounts = snapshot.categoryCounts
             monthBuckets = snapshot.monthBuckets
         } while refreshRequested

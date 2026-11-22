@@ -40,6 +40,10 @@ struct SettingsView: View {
 
                         openSourceSection
 
+                        if library.authorizationStatus == .limited {
+                            LimitedPhotoAccessNotice()
+                        }
+
                         section(lm.t("外观")) {
                             themePickerRow
                         }

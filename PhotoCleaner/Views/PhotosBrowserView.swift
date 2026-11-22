@@ -62,6 +62,11 @@ struct PhotosBrowserView: View {
                 AppPalette.bgPrimary.ignoresSafeArea()
 
                 VStack(spacing: 0) {
+                    if library.authorizationStatus == .limited {
+                        LimitedPhotoAccessNotice()
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 8)
+                    }
                     filterBar
                         .padding(.horizontal, 16)
                         .padding(.top, 4)

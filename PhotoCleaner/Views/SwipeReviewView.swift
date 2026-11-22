@@ -269,9 +269,18 @@ struct SwipeReviewView: View {
                 set: { if !$0 { pendingExitConfirm = nil } }
             ),
             title: String(format: lm.t("有 %d 张待删除"), vm.pendingDeletion.count),
-            message: lm.t("有待删除的照片未处理。继续退出会清空当前选择。"),
+            message: lm.t("可以保存当前进度稍后继续，或放弃待删除选择。"),
             actions: [
-                DialogAction(title: lm.t("查看待删除列表"), role: .primary) {
+                DialogAction(title: lm.t("保存并退出"), role: .primary) {
+                    let action = pendingExitConfirm
+                    pendingExitConfirm = nil
+                    Task {
+                        await vm.saveDraft()
+                        guard !vm.draftSaveFailed else { return }
+                        finishExit(action)
+                    }
+                },
+                DialogAction(title: lm.t("查看待删除列表"), role: .normal) {
                     showPendingSheet = true
                     pendingExitConfirm = nil
                 },
@@ -279,13 +288,7 @@ struct SwipeReviewView: View {
                     let action = pendingExitConfirm
                     vm.discardPending()
                     pendingExitConfirm = nil
-                    switch action {
-                    case .dismiss?:
-                        dismiss()
-                    case .switchCategory(let cat)?:
-                        switchCategory(to: cat)
-                    case nil: break
-                    }
+                    finishExit(action)
                 },
                 DialogAction(title: lm.t("点错了"), role: .highlightedCancel) {
                     pendingExitConfirm = nil
@@ -314,6 +317,15 @@ struct SwipeReviewView: View {
             }
         }
         .onDisappear { Task { await vm.saveDraft() } }
+    }
+
+    /// 按已确认的目标退出或切换分类；保存失败时由调用方留在当前页面。
+    private func finishExit(_ action: PendingExitAction?) {
+        switch action {
+        case .dismiss?: dismiss()
+        case .switchCategory(let category)?: switchCategory(to: category)
+        case nil: break
+        }
     }
 
     /// 保存当前草稿后切换分类，避免最后一次滑动还未落盘就丢失。

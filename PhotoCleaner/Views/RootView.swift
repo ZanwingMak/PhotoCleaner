@@ -5,6 +5,7 @@
 
 import SwiftUI
 import Photos
+import PhotosUI
 
 struct RootView: View {
     @EnvironmentObject private var library: PhotoLibraryService
@@ -138,5 +139,76 @@ struct PermissionDeniedView: View {
             .padding(.top, 8)
         }
         .padding()
+    }
+}
+
+/// 部分权限下说明可见范围，允许用户主动调整系统授权的照片。
+struct LimitedPhotoAccessNotice: View {
+    @EnvironmentObject private var lm: LanguageManager
+    @State private var showPicker = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(lm.t("当前仅可访问部分照片"))
+                .font(.subheadline.weight(.semibold))
+            Text(lm.t("仅显示你允许访问的照片和视频，可随时调整选择。"))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Button {
+                showPicker = true
+            } label: {
+                Label(lm.t("管理可访问的照片"), systemImage: "photo.badge.plus")
+                    .font(.subheadline)
+                    .frame(minHeight: 32)
+            }
+            .buttonStyle(.bordered)
+            .disabled(showPicker)
+            .background {
+                LimitedPhotoLibraryPicker(isPresented: $showPicker)
+                    .allowsHitTesting(false)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(AppPalette.brand.opacity(0.1), in: RoundedRectangle(cornerRadius: 16))
+    }
+}
+
+/// 从当前窗口内的控制器弹出系统授权选择器，避免查找全局窗口。
+private struct LimitedPhotoLibraryPicker: UIViewControllerRepresentable {
+    @Binding var isPresented: Bool
+
+    /// 创建随按钮附着于当前窗口的透明展示锚点。
+    func makeUIViewController(context: Context) -> UIViewController {
+        let controller = UIViewController()
+        controller.view.backgroundColor = .clear
+        return controller
+    }
+
+    /// 仅响应主动点击，系统完成选择后恢复按钮状态。
+    func updateUIViewController(_ controller: UIViewController, context: Context) {
+        guard isPresented, !context.coordinator.isPresenting,
+              controller.viewIfLoaded?.window != nil else { return }
+        let binding = $isPresented
+        guard PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited else {
+            Task { @MainActor in binding.wrappedValue = false }
+            return
+        }
+        let coordinator = context.coordinator
+        coordinator.isPresenting = true
+        PHPhotoLibrary.shared().presentLimitedLibraryPicker(from: controller) { _ in
+            Task { @MainActor in
+                coordinator.isPresenting = false
+                binding.wrappedValue = false
+            }
+        }
+    }
+
+    /// 维持系统弹窗状态，避免 SwiftUI 更新时重复呈现。
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    @MainActor
+    final class Coordinator {
+        var isPresenting = false
     }
 }
